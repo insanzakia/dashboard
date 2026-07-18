@@ -1,0 +1,22 @@
+# =====================================================================
+# .htaccess ROOT — untuk hosting yang meletakkan seluruh repo di
+# document root (public_html) dan TIDAK bisa mengubah document root.
+#
+# Semua request diarahkan ke dalam subfolder public/ (front controller
+# Laravel), sehingga app tetap jalan tanpa memindah file apa pun.
+# File ini WAJIB ikut ke repo agar setiap deploy GitHub membawanya.
+# =====================================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Arahkan semua request ke dalam folder public/.
+    # Pola (?!public/) mencegah rewrite berulang (loop tak berujung).
+    RewriteRule ^(?!public/)(.*)$ public/$1 [L]
+</IfModule>
+
+# Lapisan pengaman: tolak akses langsung ke file .env
+# (jaga-jaga bila mod_rewrite tidak aktif).
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
