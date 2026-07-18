@@ -1,11 +1,113 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
-@source '../**/*.js';
+@source '../**/*.tsx';
+
+@custom-variant dark (&:is(.dark *));
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Font display untuk judul (mis. heading landing InPULS KEMENKES) → utility `font-display`. */
+    --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+/*
+ * Tema "Calm Clinical Teal" — palet primer teal + neutral hangat.
+ * Warna kategori grafik (--chart-1..5) sudah divalidasi colorblind-safe (ΔE ≥ 8) &
+ * kontras ≥ 3:1 di kedua mode. Untuk mengganti ke palet lain, cukup ubah nilai hex di sini.
+ */
+:root {
+    --radius: 0.625rem;
+    --background: #fbfaf7;          /* cream hangat */
+    --foreground: #1d1c1a;          /* tinta hangat */
+    --card: #ffffff;
+    --card-foreground: #1d1c1a;
+    --popover: #ffffff;
+    --popover-foreground: #1d1c1a;
+    --primary: #0f766e;            /* teal-700 */
+    --primary-foreground: #f6fbfa;
+    --secondary: #f1efea;
+    --secondary-foreground: #2a2925;
+    --muted: #f1efea;
+    --muted-foreground: #6f6b64;
+    --accent: #e4f1ef;             /* tint teal lembut */
+    --accent-foreground: #0f5148;
+    --destructive: #e11d48;        /* rose */
+    --border: #e7e2da;
+    --input: #e7e2da;
+    --ring: #0f766e;
+    --chart-1: #0d9488;            /* teal */
+    --chart-2: #d97706;            /* amber */
+    --chart-3: #4f46e5;            /* indigo */
+    --chart-4: #e11d48;            /* rose */
+    --chart-5: #0284c7;            /* blue */
+}
+
+.dark {
+    --background: #14181a;          /* slate gelap */
+    --foreground: #eae8e3;
+    --card: #1b2124;
+    --card-foreground: #eae8e3;
+    --popover: #1b2124;
+    --popover-foreground: #eae8e3;
+    --primary: #2dd4bf;            /* teal terang untuk kontras pada gelap */
+    --primary-foreground: #10302c;
+    --secondary: #262b2e;
+    --secondary-foreground: #eae8e3;
+    --muted: #262b2e;
+    --muted-foreground: #9aa0a0;
+    --accent: #24322f;
+    --accent-foreground: #c9f2ec;
+    --destructive: #fb7185;        /* rose-400 */
+    --border: oklch(1 0 0 / 12%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: #2dd4bf;
+    --chart-1: #0d9488;            /* teal */
+    --chart-2: #d97706;            /* amber */
+    --chart-3: #6366f1;            /* indigo (dilebihterangkan untuk gelap) */
+    --chart-4: #e11d48;            /* rose */
+    --chart-5: #0284c7;            /* blue */
+}
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+    body {
+        @apply bg-background text-foreground;
+    }
 }

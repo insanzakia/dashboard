@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Kredensial administrator (PRD Section 6). Login berbasis `username`.
+        // Kolom `password` menyimpan hash (bcrypt/argon2id) — nama kolom mengikuti konvensi Laravel/Fortify.
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->uuid('id')->primary();
+            $table->string('username')->unique();
             $table->string('password');
+            $table->string('role')->default('super_admin');
+            $table->timestamp('last_login')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
@@ -29,7 +31,8 @@ return new class extends Migration
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
+            // user_id menyimpan UUID (char36) agar cocok dengan PK users berbasis UUID.
+            $table->foreignUuid('user_id')->nullable()->index();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
             $table->longText('payload');
