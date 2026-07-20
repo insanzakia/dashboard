@@ -34,7 +34,26 @@ export const STANDAR_ENDPOINTS = {
     lab: (id: string) => `/standar-data/lab/${id}`,
     agregat: '/standar-data/agregat',
     perbandingan: '/standar-data/perbandingan',
+    grouped: '/standar-data/grouped',
+    multi: '/standar-data/multi',
 } as const;
+
+/** Dimensi pengelompokan grafik ringkasan (Feature 3). */
+export const GROUP_BY_OPTIONS = [
+    { value: 'tier', label: 'Tier' },
+    { value: 'provinsi', label: 'Provinsi' },
+    { value: 'regional', label: 'Regional' },
+    { value: 'kabupaten_kota', label: 'Kabupaten/Kota' },
+] as const;
+
+export type GroupByDimension = (typeof GROUP_BY_OPTIONS)[number]['value'];
+
+/** Status pemenuhan per alat (ASPAK 3-nilai) — label + kelas warna badge. */
+export const STATUS_ALAT: Record<string, { label: string; className: string }> = {
+    sesuai: { label: 'Sesuai', className: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+    kurang: { label: 'Kurang', className: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
+    tidak_ada: { label: 'Tidak Ada', className: 'bg-rose-500/10 text-rose-600 dark:text-rose-400' },
+};
 
 /** Label 8 kategori alat KMK — SUMBER TUNGGAL, jangan hardcode di komponen. */
 export const KATEGORI_ALAT: Record<string, string> = {

@@ -62,4 +62,33 @@ class StandarLabkesmasController extends Controller
             return ApiResponse::error('Gagal memuat perbandingan. Silakan coba lagi.', 500);
         }
     }
+
+    /** Endpoint JSON: agregasi % dikelompokkan menurut dimensi (tier/provinsi/regional/kab-kota). */
+    public function grouped(Request $request, PemenuhanAlatRepositoryInterface $repo): JsonResponse
+    {
+        $allowed = ['tier', 'provinsi', 'regional', 'kabupaten_kota'];
+        $groupBy = in_array($request->query('group_by'), $allowed, true) ? $request->query('group_by') : 'tier';
+
+        try {
+            return ApiResponse::success($repo->groupedFulfillment(DashboardFilter::fromRequest($request), $groupBy));
+        } catch (Throwable $e) {
+            Log::error('Gagal memuat agregasi terkelompok', ['error' => $e->getMessage()]);
+
+            return ApiResponse::error('Gagal memuat data. Silakan coba lagi.', 500);
+        }
+    }
+
+    /** Endpoint JSON: pemenuhan beberapa lab terpilih (perbandingan berdampingan). */
+    public function multi(Request $request, PemenuhanAlatRepositoryInterface $repo): JsonResponse
+    {
+        $labIds = array_values(array_filter((array) $request->query('lab_ids', []), 'is_string'));
+
+        try {
+            return ApiResponse::success($repo->multiLabFulfillment($labIds));
+        } catch (Throwable $e) {
+            Log::error('Gagal memuat perbandingan multi-lab', ['error' => $e->getMessage()]);
+
+            return ApiResponse::error('Gagal memuat perbandingan. Silakan coba lagi.', 500);
+        }
+    }
 }

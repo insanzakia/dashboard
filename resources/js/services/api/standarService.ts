@@ -1,7 +1,13 @@
 import { apiClient } from './client';
-import { STANDAR_ENDPOINTS } from '@/lib/constants';
+import { STANDAR_ENDPOINTS, type GroupByDimension } from '@/lib/constants';
 import type { DashboardFilter } from '@/types/dashboard';
-import type { AggregateFulfillment, LabComparisonRow, LabFulfillment } from '@/types/pemenuhanAlat';
+import type {
+    AggregateFulfillment,
+    GroupedRow,
+    LabComparisonRow,
+    LabFulfillment,
+    MultiLabRow,
+} from '@/types/pemenuhanAlat';
 
 /** Ubah filter dashboard (wilayah + tier) menjadi query params backend. */
 function toQueryParams(filter: DashboardFilter) {
@@ -29,6 +35,20 @@ export const standarService = {
     async getComparison(filter: DashboardFilter): Promise<LabComparisonRow[]> {
         const response = await apiClient.get<LabComparisonRow[]>(STANDAR_ENDPOINTS.perbandingan, {
             params: toQueryParams(filter),
+        });
+        return response.data;
+    },
+
+    async getGrouped(filter: DashboardFilter, groupBy: GroupByDimension): Promise<GroupedRow[]> {
+        const response = await apiClient.get<GroupedRow[]>(STANDAR_ENDPOINTS.grouped, {
+            params: { ...toQueryParams(filter), group_by: groupBy },
+        });
+        return response.data;
+    },
+
+    async getMulti(labIds: string[]): Promise<MultiLabRow[]> {
+        const response = await apiClient.get<MultiLabRow[]>(STANDAR_ENDPOINTS.multi, {
+            params: { lab_ids: labIds },
         });
         return response.data;
     },

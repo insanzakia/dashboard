@@ -5,7 +5,7 @@ import { EmptyState } from '@/Components/molecules/EmptyState';
 import { ErrorState } from '@/Components/molecules/ErrorState';
 import { Skeleton } from '@/Components/atoms/Skeleton';
 import { DataTable, type Column } from '@/Components/organisms/DataTable';
-import { KATEGORI_ALAT, JENIS_LAB_LABEL } from '@/lib/constants';
+import { KATEGORI_ALAT, JENIS_LAB_LABEL, STATUS_ALAT } from '@/lib/constants';
 import { formatPersen, persenColor } from '@/lib/utils';
 import type { RequestState } from '@/types/dashboard';
 import type { AlatPemenuhanItem, LabFulfillment } from '@/types/pemenuhanAlat';
@@ -20,18 +20,14 @@ const columns: Column<ItemRow>[] = [
     {
         header: 'Status',
         className: 'w-28 text-right',
-        cell: (r) => (
-            <span
-                className={
-                    'inline-block rounded-full px-2 py-0.5 text-xs font-medium ' +
-                    (r.terpenuhi
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                        : 'bg-rose-500/10 text-rose-600 dark:text-rose-400')
-                }
-            >
-                {r.terpenuhi ? 'Terpenuhi' : 'Belum'}
-            </span>
-        ),
+        cell: (r) => {
+            const s = STATUS_ALAT[r.status] ?? STATUS_ALAT.tidak_ada;
+            return (
+                <span className={'inline-block rounded-full px-2 py-0.5 text-xs font-medium ' + s.className}>
+                    {s.label}
+                </span>
+            );
+        },
     },
 ];
 

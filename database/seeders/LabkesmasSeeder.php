@@ -12,77 +12,111 @@ use App\Models\Regional;
 use Illuminate\Database\Seeder;
 
 /**
- * Mengisi hierarki wilayah + labkesmas + jenis tes + data pemeriksaan 6 bulan (Feb–Jul 2026).
- * Angka bersifat deterministik (berbasis indeks) agar hasil seed konsisten.
+ * Wilayah (Regional 7 / Kalimantan) + 34 Labkesmas NYATA sesuai dokumen Analisis Kesesuaian.
+ * Nama labkesmas DISAMAKAN PERSIS dengan kolom `labkesmas` pada fakta_kesesuaian_labkesmas.csv
+ * agar InventarisAlatSeeder dapat menautkan capaian per lab.
  */
 class LabkesmasSeeder extends Seeder
 {
+    /** Provinsi → daftar kabupaten/kota (hanya yang dipakai lab). */
+    private const WILAYAH = [
+        'Kalimantan Selatan' => [
+            'Kota Banjarbaru', 'Kota Banjarmasin', 'Kab. Banjar', 'Kab. Tanah Laut',
+            'Kab. Tanah Bumbu', 'Kab. Tapin', 'Kab. Hulu Sungai Tengah', 'Kab. Barito Kuala',
+            'Kab. Kotabaru', 'Kab. Tabalong',
+        ],
+        'Kalimantan Tengah' => [
+            'Kota Palangkaraya', 'Kab. Kapuas', 'Kab. Kotawaringin Barat', 'Kab. Lamandau',
+            'Kab. Seruyan', 'Kab. Barito Selatan', 'Kab. Kotawaringin Timur', 'Kab. Barito Utara',
+            'Kab. Katingan', 'Kab. Sukamara',
+        ],
+        'Kalimantan Timur' => [
+            'Kota Samarinda', 'Kota Balikpapan', 'Kota Bontang', 'Kab. Kutai Timur',
+            'Kab. Berau', 'Kab. Paser',
+        ],
+        'Kalimantan Utara' => [
+            'Kota Tarakan', 'Kab. Bulungan', 'Kab. Nunukan',
+        ],
+    ];
+
+    /** [nama_kantor (persis CSV), tier, kabupaten/kota]. */
+    private const LABS = [
+        ['BBLKM Banjarbaru', 4, 'Kota Banjarbaru'],
+        ['Loka Labkesmas Tanah Bumbu', 4, 'Kab. Tanah Bumbu'],
+        ['Labkesprov Kalimantan Timur', 3, 'Kota Samarinda'],
+        ['Labkesprov Kalimantan Selatan', 3, 'Kota Banjarbaru'],
+        ['Labkesprov Kalimantan Tengah', 3, 'Kota Palangkaraya'],
+        ['Labkesda Kab. Banjar', 2, 'Kab. Banjar'],
+        ['Labkesda Kota Banjarmasin', 2, 'Kota Banjarmasin'],
+        ['Labkesda Kab. Tanah Laut', 2, 'Kab. Tanah Laut'],
+        ['Labkesda Kab. Tanah Bumbu', 2, 'Kab. Tanah Bumbu'],
+        ['Labkesda Kota Banjarbaru', 2, 'Kota Banjarbaru'],
+        ['Labkesda Kab. Tapin', 2, 'Kab. Tapin'],
+        ['Labkesda Kab. Hulu Sungai Tengah', 2, 'Kab. Hulu Sungai Tengah'],
+        ['Labkesda Kab. Barito Kuala', 2, 'Kab. Barito Kuala'],
+        ['Labkesda Kab. Kotabaru', 2, 'Kab. Kotabaru'],
+        ['Labkesda Kab. Tabalong', 2, 'Kab. Tabalong'],
+        ['Labkesda Kota Palangkaraya', 2, 'Kota Palangkaraya'],
+        ['Labkesda Kab. Kapuas', 2, 'Kab. Kapuas'],
+        ['Labkesda Kab. Kotawaringin Barat', 2, 'Kab. Kotawaringin Barat'],
+        ['Labkesda Lamandau', 2, 'Kab. Lamandau'],
+        ['Labkesda Kab. Seruyan', 2, 'Kab. Seruyan'],
+        ['Labkesda Kab. Barito Selatan', 2, 'Kab. Barito Selatan'],
+        ['Labkesda Kab. Kotawaringin Timur', 2, 'Kab. Kotawaringin Timur'],
+        ['Labkesda Kab. Barito Utara', 2, 'Kab. Barito Utara'],
+        ['Labkesda Kab. Katingan', 2, 'Kab. Katingan'],
+        ['Labkesda Kab. Sukamara', 2, 'Kab. Sukamara'],
+        ['Labkesda Kota Balikpapan', 2, 'Kota Balikpapan'],
+        ['Labkesda Kab. Kutai Timur', 2, 'Kab. Kutai Timur'],
+        ['Labkesda Kab. Berau', 2, 'Kab. Berau'],
+        ['Labkesda Kab. Paser', 2, 'Kab. Paser'],
+        ['Labkesda Kota Samarinda', 2, 'Kota Samarinda'],
+        ['Labkesda Kota Bontang', 2, 'Kota Bontang'],
+        ['Labkesda Kota Tarakan', 2, 'Kota Tarakan'],
+        ['Labkesda Kab. Bulungan', 2, 'Kab. Bulungan'],
+        ['Labkesda Kab. Nunukan', 2, 'Kab. Nunukan'],
+    ];
+
     public function run(): void
     {
         $negara = Negara::create(['nama' => 'Indonesia']);
+        $regional = Regional::create(['nama' => 'Regional 7', 'negara_id' => $negara->id]);
 
-        // Regional → Provinsi → Kabupaten/Kota
-        $tree = [
-            'Sumatera' => [
-                'Sumatera Utara' => ['Kota Medan', 'Kabupaten Deli Serdang'],
-                'Sumatera Selatan' => ['Kota Palembang'],
-            ],
-            'Jawa & Bali' => [
-                'Jawa Barat' => ['Kota Bandung', 'Kabupaten Bekasi'],
-                'Bali' => ['Kota Denpasar'],
-            ],
-        ];
-
-        /** @var array<int, KabupatenKota> $kabKotaList */
-        $kabKotaList = [];
-
-        foreach ($tree as $namaRegional => $provinsiMap) {
-            $regional = Regional::create(['nama' => $namaRegional, 'negara_id' => $negara->id]);
-
-            foreach ($provinsiMap as $namaProvinsi => $kabKotaNames) {
-                $provinsi = Provinsi::create(['nama' => $namaProvinsi, 'regional_id' => $regional->id]);
-
-                foreach ($kabKotaNames as $namaKabKota) {
-                    $kabKotaList[] = KabupatenKota::create([
-                        'nama' => $namaKabKota,
-                        'provinsi_id' => $provinsi->id,
-                    ]);
-                }
+        // Buat provinsi + kabupaten/kota; simpan referensi kab/kota per nama.
+        $kabByName = [];
+        foreach (self::WILAYAH as $namaProvinsi => $kabList) {
+            $provinsi = Provinsi::create(['nama' => $namaProvinsi, 'regional_id' => $regional->id]);
+            foreach ($kabList as $namaKab) {
+                $kabByName[$namaKab] = KabupatenKota::create([
+                    'nama' => $namaKab,
+                    'provinsi_id' => $provinsi->id,
+                ]);
             }
         }
 
-        // Jenis pemeriksaan (master tes)
-        $tesList = collect(['TCM TB', 'Mikroskopis Malaria', 'Kimia Air'])
-            ->map(fn (string $nama) => JenisPemeriksaan::create(['nama_tes' => $nama]));
-
-        // Labkesmas lintas tier tersebar di beberapa kab/kota.
-        // Kota Denpasar sengaja TIDAK diberi labkesmas → mendemonstrasikan Empty State di dashboard.
-        $tierByIndex = [5, 4, 3, 2, 3, 4];
-        $labkesmasList = [];
-
-        foreach ($kabKotaList as $i => $kabKota) {
-            if ($kabKota->nama === 'Kota Denpasar') {
-                continue;
-            }
-
-            $labkesmasList[] = Labkesmas::create([
-                'nama_kantor' => "Labkesmas {$kabKota->nama}",
-                'tier_labkesmas' => $tierByIndex[$i] ?? 2,
-                'kabupaten_kota_id' => $kabKota->id,
+        // 34 Labkesmas nyata.
+        $labs = [];
+        foreach (self::LABS as [$nama, $tier, $kabNama]) {
+            $labs[] = Labkesmas::create([
+                'nama_kantor' => $nama,
+                'tier_labkesmas' => $tier,
+                'jenis_lab' => null,
+                'kabupaten_kota_id' => $kabByName[$kabNama]->id,
             ]);
         }
 
-        // Data pemeriksaan 6 periode terakhir untuk tiap labkesmas × tiap tes.
+        // Master jenis pemeriksaan + data pemeriksaan demo ringan (6 lab pertama) agar
+        // dashboard Pemeriksaan tetap ada isinya. Fokus utama fitur ini = pemenuhan alat.
+        $tesList = collect(['TCM TB', 'Mikroskopis Malaria', 'Kimia Air'])
+            ->map(fn (string $nama) => JenisPemeriksaan::create(['nama_tes' => $nama]));
+
         $periods = [
-            ['tahun' => 2026, 'bulan' => 2],
-            ['tahun' => 2026, 'bulan' => 3],
-            ['tahun' => 2026, 'bulan' => 4],
-            ['tahun' => 2026, 'bulan' => 5],
-            ['tahun' => 2026, 'bulan' => 6],
-            ['tahun' => 2026, 'bulan' => 7],
+            ['tahun' => 2026, 'bulan' => 2], ['tahun' => 2026, 'bulan' => 3],
+            ['tahun' => 2026, 'bulan' => 4], ['tahun' => 2026, 'bulan' => 5],
+            ['tahun' => 2026, 'bulan' => 6], ['tahun' => 2026, 'bulan' => 7],
         ];
 
-        foreach ($labkesmasList as $labIndex => $labkesmas) {
+        foreach (array_slice($labs, 0, 6) as $labIndex => $labkesmas) {
             foreach ($tesList as $tesIndex => $tes) {
                 foreach ($periods as $periodIndex => $period) {
                     DataPemeriksaan::create([
@@ -90,7 +124,6 @@ class LabkesmasSeeder extends Seeder
                         'jenis_tes_id' => $tes->id,
                         'bulan' => $period['bulan'],
                         'tahun' => $period['tahun'],
-                        // Deterministik: naik tiap bulan, bervariasi per labkesmas & tes.
                         'jumlah' => 400 + ($labIndex * 120) + ($tesIndex * 60) + ($periodIndex * 45),
                     ]);
                 }

@@ -12,7 +12,7 @@ class Alat extends Model
 
     protected $table = 'alat';
 
-    protected $fillable = ['nama_alat', 'kategori', 'keterangan'];
+    protected $fillable = ['nama_alat', 'kategori', 'keterangan', 'alias_aspak'];
 
     public function standar(): HasMany
     {

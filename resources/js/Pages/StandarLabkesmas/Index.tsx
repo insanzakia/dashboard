@@ -7,13 +7,16 @@ import { FilterDropdown } from '@/Components/molecules/FilterDropdown';
 import { WilayahCascadeFilter } from '@/Components/organisms/WilayahCascadeFilter';
 import { TierSelector } from '@/Components/molecules/TierSelector';
 import { FulfillmentSummary } from '@/Components/organisms/FulfillmentSummary';
+import { GroupedFulfillmentChart } from '@/Components/organisms/GroupedFulfillmentChart';
 import { LabComparisonChart } from '@/Components/organisms/LabComparisonChart';
+import { LabMultiCompare } from '@/Components/organisms/LabMultiCompare';
 import { LabFulfillmentDetail } from '@/Components/organisms/LabFulfillmentDetail';
 import { DashboardFilterProvider, useDashboardFilter } from '@/context/DashboardFilterContext';
 import { useAggregateFulfillment } from '@/hooks/useAggregateFulfillment';
+import { useGroupedFulfillment } from '@/hooks/useGroupedFulfillment';
 import { useLabComparison } from '@/hooks/useLabComparison';
 import { useLabFulfillment } from '@/hooks/useLabFulfillment';
-import { JENIS_LAB_LABEL } from '@/lib/constants';
+import { JENIS_LAB_LABEL, GROUP_BY_OPTIONS, type GroupByDimension } from '@/lib/constants';
 import type { DashboardFilter } from '@/types/dashboard';
 import type { InventarisLabkesmasOption } from '@/types/inventarisAlat';
 
@@ -33,10 +36,15 @@ function labOptionLabel(o: InventarisLabkesmasOption): string {
     return `${o.nama_kantor} (Tier ${o.tier_labkesmas}${jenis})`;
 }
 
+const GROUP_BY_LABEL: Record<string, string> = Object.fromEntries(GROUP_BY_OPTIONS.map((o) => [o.value, o.label]));
+
 function StandarContent({ labkesmasOptions }: { labkesmasOptions: InventarisLabkesmasOption[] }) {
     const { filter, setTier, resetFilter } = useDashboardFilter();
     const aggregate = useAggregateFulfillment(filter);
     const comparison = useLabComparison(filter);
+
+    const [groupBy, setGroupBy] = useState<GroupByDimension>('tier');
+    const grouped = useGroupedFulfillment(filter, groupBy);
 
     const [selectedLabId, setSelectedLabId] = useState<string | null>(null);
     const detail = useLabFulfillment(selectedLabId);
@@ -67,15 +75,40 @@ function StandarContent({ labkesmasOptions }: { labkesmasOptions: InventarisLabk
                 </Card>
             </section>
 
+            {/* Ringkasan agregat keseluruhan */}
             <section>
                 <FulfillmentSummary state={aggregate} scopeLabel={scopeLabelOf(filter)} />
             </section>
 
+            {/* Feature 3: ringkasan dikelompokkan (customable) */}
+            <section>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
+                        <CardTitle className="text-base font-semibold text-foreground">
+                            Ringkasan per {GROUP_BY_LABEL[groupBy]}
+                        </CardTitle>
+                        <div className="w-52">
+                            <FilterDropdown
+                                label="Kelompokkan menurut"
+                                placeholder="Pilih dimensi"
+                                value={groupBy}
+                                options={GROUP_BY_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+                                onChange={(v) => setGroupBy((v as GroupByDimension) ?? 'tier')}
+                            />
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <GroupedFulfillmentChart state={grouped} />
+                    </CardContent>
+                </Card>
+            </section>
+
+            {/* Peringkat semua lab dalam cakupan */}
             <section>
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-base font-semibold text-foreground">
-                            Perbandingan Antar-Labkesmas
+                            Peringkat Antar-Labkesmas
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -84,6 +117,21 @@ function StandarContent({ labkesmasOptions }: { labkesmasOptions: InventarisLabk
                 </Card>
             </section>
 
+            {/* Feature 2: bandingkan beberapa lab terpilih berdampingan */}
+            <section>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base font-semibold text-foreground">
+                            Bandingkan Labkesmas Terpilih
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <LabMultiCompare labkesmasOptions={labkesmasOptions} />
+                    </CardContent>
+                </Card>
+            </section>
+
+            {/* Feature 1: rincian satu lab */}
             <section>
                 <Card>
                     <CardHeader>

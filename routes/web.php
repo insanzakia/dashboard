@@ -51,6 +51,8 @@ Route::prefix('standar-data')->name('standar-data.')->group(function () {
     Route::get('/lab/{labkesmas}', [StandarLabkesmasController::class, 'fulfillment'])->name('lab');
     Route::get('/agregat', [StandarLabkesmasController::class, 'aggregate'])->name('agregat');
     Route::get('/perbandingan', [StandarLabkesmasController::class, 'comparison'])->name('perbandingan');
+    Route::get('/grouped', [StandarLabkesmasController::class, 'grouped'])->name('grouped');
+    Route::get('/multi', [StandarLabkesmasController::class, 'multi'])->name('multi');
 });
 
 /*

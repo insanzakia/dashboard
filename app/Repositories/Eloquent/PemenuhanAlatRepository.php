@@ -47,6 +47,8 @@ class PemenuhanAlatRepository implements PemenuhanAlatRepositoryInterface
             $wajib = (int) $row->jumlah_minimal;
             $dimiliki = (int) $row->jumlah_dimiliki;
             $terpenuhi = $dimiliki >= $wajib;
+            // Status ASPAK 3-nilai: sesuai (≥standar) / kurang (0<dimiliki<standar) / tidak_ada (0).
+            $status = $terpenuhi ? 'sesuai' : ($dimiliki > 0 ? 'kurang' : 'tidak_ada');
 
             $itemsOut[] = [
                 'nama_alat' => $row->nama_alat,
@@ -54,6 +56,7 @@ class PemenuhanAlatRepository implements PemenuhanAlatRepositoryInterface
                 'jumlah_minimal' => $wajib,
                 'jumlah_dimiliki' => $dimiliki,
                 'terpenuhi' => $terpenuhi,
+                'status' => $status,
             ];
 
             $perKategori[$row->kategori] ??= ['wajib' => 0, 'terpenuhi' => 0];
@@ -164,6 +167,84 @@ class PemenuhanAlatRepository implements PemenuhanAlatRepositoryInterface
 
         // Urut % menurun; lab tanpa standar (persen null) diletakkan paling akhir.
         usort($out, fn ($a, $b) => ($b['persen'] ?? -1) <=> ($a['persen'] ?? -1));
+
+        return $out;
+    }
+
+    public function groupedFulfillment(DashboardFilter $filter, string $groupBy): array
+    {
+        $rows = DB::table('labkesmas as l')
+            ->join('kabupaten_kota as kk', 'kk.id', '=', 'l.kabupaten_kota_id')
+            ->join('provinsi as p', 'p.id', '=', 'kk.provinsi_id')
+            ->join('regional as r', 'r.id', '=', 'p.regional_id')
+            ->leftJoin('standar_alat as sa', fn (JoinClause $join) => $this->matchStandar($join))
+            ->leftJoin('inventaris_alat as inv', fn (JoinClause $join) => $this->matchInventaris($join))
+            ->when($filter->kabupatenKotaId, fn ($q) => $q->where('l.kabupaten_kota_id', $filter->kabupatenKotaId))
+            ->when($filter->provinsiId && ! $filter->kabupatenKotaId, fn ($q) => $q->where('kk.provinsi_id', $filter->provinsiId))
+            ->when($filter->regionalId && ! $filter->provinsiId && ! $filter->kabupatenKotaId, fn ($q) => $q->where('p.regional_id', $filter->regionalId))
+            ->when($filter->tier !== null, fn ($q) => $q->where('l.tier_labkesmas', $filter->tier))
+            ->groupBy('l.id', 'l.tier_labkesmas', 'p.id', 'p.nama', 'r.id', 'r.nama', 'kk.id', 'kk.nama')
+            ->selectRaw(
+                'l.id as lab_id, l.tier_labkesmas as tier, p.id as prov_id, p.nama as prov_nama, '
+                .'r.id as reg_id, r.nama as reg_nama, kk.id as kab_id, kk.nama as kab_nama, '
+                .'COUNT(sa.id) as wajib, '
+                .'SUM(CASE WHEN COALESCE(inv.jumlah, 0) >= sa.jumlah_minimal THEN 1 ELSE 0 END) as terpenuhi'
+            )
+            ->get();
+
+        // Hitung % per lab lalu kelompokkan & rata-ratakan menurut dimensi terpilih.
+        $groups = [];
+        foreach ($rows as $r) {
+            $p = $this->persen((int) $r->terpenuhi, (int) $r->wajib);
+            if ($p === null) {
+                continue;
+            }
+            [$key, $label] = match ($groupBy) {
+                'provinsi' => [$r->prov_id, $r->prov_nama],
+                'regional' => [$r->reg_id, $r->reg_nama],
+                'kabupaten_kota' => [$r->kab_id, $r->kab_nama],
+                default => ['tier-'.$r->tier, 'Tier '.$r->tier],
+            };
+            $groups[$key]['label'] = $label;
+            $groups[$key]['tier'] = (int) $r->tier;
+            $groups[$key]['persens'][] = $p;
+        }
+
+        $out = [];
+        foreach ($groups as $key => $g) {
+            $out[] = [
+                'key' => (string) $key,
+                'label' => $g['label'],
+                'persen_rata' => round(array_sum($g['persens']) / count($g['persens']), 1),
+                'jumlah_lab' => count($g['persens']),
+            ];
+        }
+
+        if ($groupBy === 'tier') {
+            usort($out, fn ($a, $b) => $a['key'] <=> $b['key']);
+        } else {
+            usort($out, fn ($a, $b) => $b['persen_rata'] <=> $a['persen_rata']);
+        }
+
+        return $out;
+    }
+
+    public function multiLabFulfillment(array $labIds): array
+    {
+        $out = [];
+        foreach ($labIds as $id) {
+            $f = $this->labFulfillment($id);
+            if ($f === null) {
+                continue;
+            }
+            $out[] = [
+                'labkesmas' => $f['labkesmas'],
+                'persen_total' => $f['persen_total'],
+                'total_wajib' => $f['total_wajib'],
+                'total_terpenuhi' => $f['total_terpenuhi'],
+                'per_kategori' => $f['per_kategori'],
+            ];
+        }
 
         return $out;
     }
