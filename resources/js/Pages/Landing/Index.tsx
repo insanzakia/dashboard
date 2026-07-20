@@ -54,7 +54,7 @@ export default function Landing({ totalLabkesmas }: LandingProps) {
 
     return (
         <>
-            <Head title="InPULS KEMENKES" />
+            <Head title="Labkesmas Regional 7" />
             <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-4 py-12">
                 {/* Logo Kemenkes blur — fade-in sebagai latar */}
                 <motion.div
@@ -77,16 +77,16 @@ export default function Landing({ totalLabkesmas }: LandingProps) {
                         variants={itemVariants}
                         className="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-primary"
                     >
-                        Kementerian Kesehatan RI
+                        Supporting staff regional 7
                     </motion.p>
                     <motion.h1
                         variants={itemVariants}
                         className="font-display text-6xl font-extrabold tracking-tight text-foreground sm:text-7xl"
                     >
-                        InPULS KEMENKES
+                        LABKESMAS 
                     </motion.h1>
                     <motion.p variants={itemVariants} className="mt-4 text-sm text-muted-foreground">
-                        Pemantauan Data Laboratorium Kesehatan Masyarakat
+                        Pemantauan Data Laboratorium Kesehatan Masyarakat Regional 7
                     </motion.p>
 
                     {/* Counter total labkesmas */}
