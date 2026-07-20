@@ -25,6 +25,8 @@ class StoreLabkesmasRequest extends FormRequest
         return [
             'nama_kantor' => ['required', 'string', 'max:200'],
             'tier_labkesmas' => ['required', 'integer', Rule::in([2, 3, 4, 5])],
+            // Jenis lab wajib hanya untuk tier 5 (lab terpisah: biokes/kesling); tier 2-4 kosong.
+            'jenis_lab' => ['nullable', 'required_if:tier_labkesmas,5', Rule::in(['biokes', 'kesling'])],
             'kabupaten_kota_id' => ['required', 'string', 'exists:kabupaten_kota,id'],
         ];
     }
@@ -36,6 +38,8 @@ class StoreLabkesmasRequest extends FormRequest
     {
         return [
             'tier_labkesmas.in' => 'Tier labkesmas harus bernilai 2, 3, 4, atau 5.',
+            'jenis_lab.required_if' => 'Jenis lab (Biokes/Kesling) wajib dipilih untuk tier 5.',
+            'jenis_lab.in' => 'Jenis lab harus Biokes atau Kesling.',
             'kabupaten_kota_id.exists' => 'Kabupaten/Kota yang dipilih tidak valid.',
         ];
     }

@@ -1,9 +1,13 @@
 export type TierLabkesmas = 2 | 3 | 4 | 5;
 
+/** Jenis lab khusus tier 5 (Biokes/Kesling); null untuk tier 2-4. */
+export type JenisLabValue = 'biokes' | 'kesling' | null;
+
 export interface Labkesmas {
     id: string;
     nama_kantor: string;
     tier_labkesmas: TierLabkesmas;
+    jenis_lab: JenisLabValue;
     kabupaten_kota_id: string;
 }
 
@@ -12,6 +16,7 @@ export interface LabkesmasRow {
     id: string;
     nama_kantor: string;
     tier_labkesmas: TierLabkesmas;
+    jenis_lab: JenisLabValue;
     kabupaten_kota_id: string;
     kabupaten_nama: string | null;
     provinsi_id: string | null;

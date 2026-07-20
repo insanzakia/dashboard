@@ -2,13 +2,19 @@
 
 namespace App\Providers;
 
+use App\Repositories\Contracts\AlatRepositoryInterface;
 use App\Repositories\Contracts\DashboardRepositoryInterface;
 use App\Repositories\Contracts\DataPemeriksaanRepositoryInterface;
+use App\Repositories\Contracts\InventarisAlatRepositoryInterface;
 use App\Repositories\Contracts\LabkesmasRepositoryInterface;
+use App\Repositories\Contracts\PemenuhanAlatRepositoryInterface;
 use App\Repositories\Contracts\WilayahRepositoryInterface;
+use App\Repositories\Eloquent\AlatRepository;
 use App\Repositories\Eloquent\DashboardRepository;
 use App\Repositories\Eloquent\DataPemeriksaanRepository;
+use App\Repositories\Eloquent\InventarisAlatRepository;
 use App\Repositories\Eloquent\LabkesmasRepository;
+use App\Repositories\Eloquent\PemenuhanAlatRepository;
 use App\Repositories\Eloquent\WilayahRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,5 +30,8 @@ class RepositoryServiceProvider extends ServiceProvider
         DashboardRepositoryInterface::class => DashboardRepository::class,
         LabkesmasRepositoryInterface::class => LabkesmasRepository::class,
         DataPemeriksaanRepositoryInterface::class => DataPemeriksaanRepository::class,
+        AlatRepositoryInterface::class => AlatRepository::class,
+        InventarisAlatRepositoryInterface::class => InventarisAlatRepository::class,
+        PemenuhanAlatRepositoryInterface::class => PemenuhanAlatRepository::class,
     ];
 }

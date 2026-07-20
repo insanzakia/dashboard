@@ -13,7 +13,7 @@ class Labkesmas extends Model
 
     protected $table = 'labkesmas';
 
-    protected $fillable = ['nama_kantor', 'tier_labkesmas', 'kabupaten_kota_id'];
+    protected $fillable = ['nama_kantor', 'tier_labkesmas', 'jenis_lab', 'kabupaten_kota_id'];
 
     protected function casts(): array
     {
@@ -30,5 +30,10 @@ class Labkesmas extends Model
     public function dataPemeriksaan(): HasMany
     {
         return $this->hasMany(DataPemeriksaan::class, 'labkesmas_id');
+    }
+
+    public function inventaris(): HasMany
+    {
+        return $this->hasMany(InventarisAlat::class, 'labkesmas_id');
     }
 }

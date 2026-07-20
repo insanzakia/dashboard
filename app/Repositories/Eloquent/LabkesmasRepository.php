@@ -23,6 +23,7 @@ class LabkesmasRepository implements LabkesmasRepositoryInterface
                     'id' => $lab->id,
                     'nama_kantor' => $lab->nama_kantor,
                     'tier_labkesmas' => $lab->tier_labkesmas,
+                    'jenis_lab' => $lab->jenis_lab,
                     'kabupaten_kota_id' => $lab->kabupaten_kota_id,
                     'kabupaten_nama' => $kabKota?->nama,
                     'provinsi_id' => $provinsi?->id,

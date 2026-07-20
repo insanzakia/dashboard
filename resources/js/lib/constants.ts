@@ -24,8 +24,41 @@ export const MONTH_NAMES = [
 export const DASHBOARD_ENDPOINTS = {
     summary: '/dashboard-data/summary',
     trend: '/dashboard-data/trend',
-    negara: '/dashboard-data/wilayah/negara',
     regional: '/dashboard-data/wilayah/regional',
     provinsi: '/dashboard-data/wilayah/provinsi',
     kabupatenKota: '/dashboard-data/wilayah/kabupaten-kota',
 } as const;
+
+/** Endpoint pemenuhan standar alat (dikonsumsi standarService). */
+export const STANDAR_ENDPOINTS = {
+    lab: (id: string) => `/standar-data/lab/${id}`,
+    agregat: '/standar-data/agregat',
+    perbandingan: '/standar-data/perbandingan',
+} as const;
+
+/** Label 8 kategori alat KMK — SUMBER TUNGGAL, jangan hardcode di komponen. */
+export const KATEGORI_ALAT: Record<string, string> = {
+    hematologi_kimia_imunologi: 'Hematologi, Kimia Klinik & Imunologi',
+    mikrobiologi: 'Mikrobiologi',
+    biomolekuler: 'Biomolekuler',
+    kesehatan_lingkungan: 'Kesehatan Lingkungan',
+    toksikologi: 'Toksikologi Klinik & Lingkungan',
+    vektor_bpp: 'Vektor & Binatang Pembawa Penyakit',
+    penunjang: 'Penunjang',
+    kalibrasi: 'Kalibrasi',
+};
+
+/** Urutan kategori untuk tampilan (mengikuti dokumen KMK). */
+export const KATEGORI_ORDER = Object.keys(KATEGORI_ALAT);
+
+/** Opsi jenis lab (khusus tier 5). */
+export const JENIS_LAB_OPTIONS = [
+    { value: 'biokes', label: 'Lab Biokes (Biologi Kesehatan)' },
+    { value: 'kesling', label: 'Lab Kesling (Kesehatan Lingkungan)' },
+] as const;
+
+export const JENIS_LAB_LABEL: Record<string, string> = {
+    biokes: 'Biokes',
+    kesling: 'Kesling',
+    umum: 'Umum',
+};

@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Controllers\Admin\AlatController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DataPemeriksaanController;
+use App\Http\Controllers\Admin\InventarisAlatController;
 use App\Http\Controllers\Admin\JenisPemeriksaanController;
 use App\Http\Controllers\Admin\LabkesmasController;
+use App\Http\Controllers\Admin\StandarAlatController;
 use App\Http\Controllers\Admin\Wilayah\KabupatenKotaController;
 use App\Http\Controllers\Admin\Wilayah\NegaraController;
 use App\Http\Controllers\Admin\Wilayah\ProvinsiController;
@@ -37,6 +40,17 @@ Route::prefix('dashboard-data')->group(function () {
     Route::get('/wilayah/regional', [WilayahController::class, 'regional'])->name('dashboard-data.wilayah.regional');
     Route::get('/wilayah/provinsi', [WilayahController::class, 'provinsi'])->name('dashboard-data.wilayah.provinsi');
     Route::get('/wilayah/kabupaten-kota', [WilayahController::class, 'kabupatenKota'])->name('dashboard-data.wilayah.kabupaten-kota');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Endpoint JSON publik — pemenuhan standar alat (envelope ApiResponse)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('standar-data')->name('standar-data.')->group(function () {
+    Route::get('/lab/{labkesmas}', [StandarLabkesmasController::class, 'fulfillment'])->name('lab');
+    Route::get('/agregat', [StandarLabkesmasController::class, 'aggregate'])->name('agregat');
+    Route::get('/perbandingan', [StandarLabkesmasController::class, 'comparison'])->name('perbandingan');
 });
 
 /*
@@ -87,4 +101,18 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/data-pemeriksaan', [DataPemeriksaanController::class, 'index'])->name('data-pemeriksaan.index');
     Route::post('/data-pemeriksaan', [DataPemeriksaanController::class, 'store'])->name('data-pemeriksaan.store');
     Route::delete('/data-pemeriksaan/{dataPemeriksaan}', [DataPemeriksaanController::class, 'destroy'])->name('data-pemeriksaan.destroy');
+
+    // Master Alat & Standar Peralatan (katalog + standar per tier)
+    Route::get('/alat', [AlatController::class, 'index'])->name('alat.index');
+    Route::post('/alat', [AlatController::class, 'store'])->name('alat.store');
+    Route::put('/alat/{alat}', [AlatController::class, 'update'])->name('alat.update');
+    Route::delete('/alat/{alat}', [AlatController::class, 'destroy'])->name('alat.destroy');
+
+    Route::post('/standar-alat', [StandarAlatController::class, 'store'])->name('standar-alat.store');
+    Route::post('/alat/{alat}/standar', [StandarAlatController::class, 'sync'])->name('standar-alat.sync');
+    Route::delete('/standar-alat/{standarAlat}', [StandarAlatController::class, 'destroy'])->name('standar-alat.destroy');
+
+    // Input inventaris alat per Labkesmas (bulk upsert)
+    Route::get('/inventaris-alat', [InventarisAlatController::class, 'index'])->name('inventaris-alat.index');
+    Route::post('/inventaris-alat', [InventarisAlatController::class, 'store'])->name('inventaris-alat.store');
 });

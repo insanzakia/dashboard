@@ -20,6 +20,8 @@ const NAV_ITEMS: NavItem[] = [
     { label: 'Jenis Tes', href: '/admin/jenis-pemeriksaan' },
     { label: 'Labkesmas', href: '/admin/labkesmas' },
     { label: 'Input Bulanan', href: '/admin/data-pemeriksaan' },
+    { label: 'Alat & Standar', href: '/admin/alat' },
+    { label: 'Input Alat', href: '/admin/inventaris-alat' },
 ];
 
 export function AdminLayout({ title, children }: { title?: string; children: ReactNode }) {

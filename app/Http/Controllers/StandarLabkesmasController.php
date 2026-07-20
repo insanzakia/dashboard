@@ -2,17 +2,64 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Labkesmas;
+use App\Repositories\Contracts\InventarisAlatRepositoryInterface;
+use App\Repositories\Contracts\PemenuhanAlatRepositoryInterface;
+use App\Support\ApiResponse;
+use App\Support\DashboardFilter;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
+/**
+ * Dashboard Standar Peralatan Labkesmas.
+ * Halaman Inertia + endpoint JSON (envelope ApiResponse) untuk data pemenuhan alat.
+ */
 class StandarLabkesmasController extends Controller
 {
-    /**
-     * Dashboard Standar Peralatan Labkesmas.
-     * Kerangka awal — model data peralatan/standar belum didefinisikan (lihat catatan di PRD berikutnya).
-     */
-    public function index(): Response
+    public function index(InventarisAlatRepositoryInterface $repo): Response
     {
-        return Inertia::render('StandarLabkesmas/Index');
+        return Inertia::render('StandarLabkesmas/Index', [
+            'labkesmasOptions' => $repo->labkesmasOptions(),
+        ]);
+    }
+
+    /** Endpoint JSON: rincian pemenuhan alat satu Labkesmas. */
+    public function fulfillment(Labkesmas $labkesmas, PemenuhanAlatRepositoryInterface $repo): JsonResponse
+    {
+        try {
+            return ApiResponse::success($repo->labFulfillment($labkesmas->id));
+        } catch (Throwable $e) {
+            Log::error('Gagal memuat pemenuhan alat lab', ['error' => $e->getMessage()]);
+
+            return ApiResponse::error('Gagal memuat data pemenuhan. Silakan coba lagi.', 500);
+        }
+    }
+
+    /** Endpoint JSON: agregasi pemenuhan sesuai filter wilayah/tier (rata-rata antar-lab). */
+    public function aggregate(Request $request, PemenuhanAlatRepositoryInterface $repo): JsonResponse
+    {
+        try {
+            return ApiResponse::success($repo->aggregateFulfillment(DashboardFilter::fromRequest($request)));
+        } catch (Throwable $e) {
+            Log::error('Gagal memuat agregat pemenuhan alat', ['error' => $e->getMessage()]);
+
+            return ApiResponse::error('Gagal memuat agregat pemenuhan. Silakan coba lagi.', 500);
+        }
+    }
+
+    /** Endpoint JSON: perbandingan pemenuhan antar-lab dalam cakupan. */
+    public function comparison(Request $request, PemenuhanAlatRepositoryInterface $repo): JsonResponse
+    {
+        try {
+            return ApiResponse::success($repo->labComparison(DashboardFilter::fromRequest($request)));
+        } catch (Throwable $e) {
+            Log::error('Gagal memuat perbandingan pemenuhan alat', ['error' => $e->getMessage()]);
+
+            return ApiResponse::error('Gagal memuat perbandingan. Silakan coba lagi.', 500);
+        }
     }
 }

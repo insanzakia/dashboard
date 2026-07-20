@@ -8,7 +8,7 @@ import { FilterDropdown } from '@/Components/molecules/FilterDropdown';
 import { ConfirmButton } from '@/Components/molecules/ConfirmButton';
 import { DataTable, type Column } from '@/Components/organisms/DataTable';
 import { KabupatenKotaPicker } from '@/Components/organisms/KabupatenKotaPicker';
-import { TIER_OPTIONS } from '@/lib/constants';
+import { TIER_OPTIONS, JENIS_LAB_OPTIONS, JENIS_LAB_LABEL } from '@/lib/constants';
 import type { LabkesmasRow } from '@/types/labkesmas';
 
 const TIER_LABEL: Record<number, string> = Object.fromEntries(
@@ -23,7 +23,7 @@ export function LabkesmasManager({ items }: { items: LabkesmasRow[] }) {
         regionalId: null,
         provinsiId: null,
     });
-    const form = useForm({ nama_kantor: '', tier_labkesmas: '', kabupaten_kota_id: '' });
+    const form = useForm({ nama_kantor: '', tier_labkesmas: '', jenis_lab: '', kabupaten_kota_id: '' });
 
     const isEditing = editingId !== null;
 
@@ -40,6 +40,7 @@ export function LabkesmasManager({ items }: { items: LabkesmasRow[] }) {
         form.setData({
             nama_kantor: row.nama_kantor,
             tier_labkesmas: String(row.tier_labkesmas),
+            jenis_lab: row.jenis_lab ?? '',
             kabupaten_kota_id: row.kabupaten_kota_id,
         });
         setInitialLoc({ regionalId: row.regional_id, provinsiId: row.provinsi_id });
@@ -58,7 +59,11 @@ export function LabkesmasManager({ items }: { items: LabkesmasRow[] }) {
 
     const columns: Column<LabkesmasRow>[] = [
         { header: 'Nama Kantor', cell: (row) => <span className="font-medium">{row.nama_kantor}</span> },
-        { header: 'Tier', cell: (row) => `Tier ${row.tier_labkesmas}` },
+        {
+            header: 'Tier',
+            cell: (row) =>
+                `Tier ${row.tier_labkesmas}${row.jenis_lab ? ` · ${JENIS_LAB_LABEL[row.jenis_lab]}` : ''}`,
+        },
         {
             header: 'Lokasi',
             cell: (row) => (
@@ -111,10 +116,30 @@ export function LabkesmasManager({ items }: { items: LabkesmasRow[] }) {
                                 placeholder="Pilih Tier"
                                 value={form.data.tier_labkesmas || null}
                                 options={TIER_OPTIONS.map((o) => ({ value: String(o.value), label: TIER_LABEL[o.value] }))}
-                                onChange={(v) => form.setData('tier_labkesmas', v ?? '')}
+                                onChange={(v) =>
+                                    // Ganti tier: jika bukan tier 5, kosongkan jenis lab.
+                                    form.setData((prev) => ({
+                                        ...prev,
+                                        tier_labkesmas: v ?? '',
+                                        jenis_lab: v === '5' ? prev.jenis_lab : '',
+                                    }))
+                                }
                             />
                             {form.errors.tier_labkesmas && <p className="text-xs text-destructive">{form.errors.tier_labkesmas}</p>}
                         </div>
+
+                        {form.data.tier_labkesmas === '5' && (
+                            <div className="flex flex-col gap-1.5">
+                                <FilterDropdown
+                                    label="Jenis Lab (khusus Tier 5)"
+                                    placeholder="Pilih Jenis Lab"
+                                    value={form.data.jenis_lab || null}
+                                    options={JENIS_LAB_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+                                    onChange={(v) => form.setData('jenis_lab', v ?? '')}
+                                />
+                                {form.errors.jenis_lab && <p className="text-xs text-destructive">{form.errors.jenis_lab}</p>}
+                            </div>
+                        )}
 
                         <div className="flex flex-col gap-1.5">
                             <Label>Lokasi (Kabupaten/Kota)</Label>
