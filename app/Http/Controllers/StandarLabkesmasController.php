@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Labkesmas;
-use App\Repositories\Contracts\InventarisAlatRepositoryInterface;
 use App\Repositories\Contracts\PemenuhanAlatRepositoryInterface;
 use App\Support\ApiResponse;
 use App\Support\DashboardFilter;
@@ -20,10 +19,28 @@ use Throwable;
  */
 class StandarLabkesmasController extends Controller
 {
-    public function index(InventarisAlatRepositoryInterface $repo): Response
+    /** Dashboard utama: hanya grafik pemenuhan alat (peringkat antar-lab + agregasi terkelompok). */
+    public function index(): Response
     {
-        return Inertia::render('StandarLabkesmas/Index', [
-            'labkesmasOptions' => $repo->labkesmasOptions(),
+        return Inertia::render('StandarLabkesmas/Index');
+    }
+
+    /** Menu "List Labkesmas": kisi kartu tiap lab (persentase pemenuhan) → tautan ke profil. */
+    public function list(): Response
+    {
+        return Inertia::render('ListLabkesmas/Index');
+    }
+
+    /** Halaman profil satu Labkesmas (Inertia): identitas lab dikirim langsung, rincian alat di-fetch client-side. */
+    public function profile(Labkesmas $labkesmas): Response
+    {
+        return Inertia::render('ListLabkesmas/Profile', [
+            'lab' => [
+                'id' => $labkesmas->id,
+                'nama_kantor' => $labkesmas->nama_kantor,
+                'tier' => (int) $labkesmas->tier_labkesmas,
+                'jenis_lab' => $labkesmas->jenis_lab,
+            ],
         ]);
     }
 

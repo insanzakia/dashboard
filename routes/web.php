@@ -28,6 +28,8 @@ Route::get('/', [LandingController::class, 'index'])->name('landing');
 // Dua dashboard tujuan dari landing.
 Route::get('/pemeriksaan', [DashboardController::class, 'index'])->name('pemeriksaan');
 Route::get('/standar-labkesmas', [StandarLabkesmasController::class, 'index'])->name('standar-labkesmas');
+Route::get('/list-labkesmas', [StandarLabkesmasController::class, 'list'])->name('list-labkesmas');
+Route::get('/list-labkesmas/{labkesmas}', [StandarLabkesmasController::class, 'profile'])->name('list-labkesmas.profile');
 
 /*
 |--------------------------------------------------------------------------
