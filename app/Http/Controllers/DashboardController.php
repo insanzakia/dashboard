@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Repositories\Contracts\DashboardRepositoryInterface;
+use App\Repositories\Contracts\InventarisAlatRepositoryInterface;
 use App\Support\ApiResponse;
 use App\Support\DashboardFilter;
 use Illuminate\Http\JsonResponse;
@@ -23,9 +24,11 @@ class DashboardController extends Controller
     ) {}
 
     /** Halaman dashboard publik (Inertia). */
-    public function index(): Response
+    public function index(InventarisAlatRepositoryInterface $repo): Response
     {
-        return Inertia::render('Dashboard/Index');
+        return Inertia::render('Dashboard/Index', [
+            'labkesmasOptions' => $repo->labkesmasOptions(),
+        ]);
     }
 
     /** Endpoint JSON: kartu ringkasan sesuai filter. */
@@ -53,6 +56,68 @@ class DashboardController extends Controller
             Log::error('Gagal memuat tren dashboard', ['error' => $e->getMessage()]);
 
             return ApiResponse::error('Gagal memuat tren. Silakan coba lagi.', 500);
+        }
+    }
+
+    /** Endpoint JSON: deret tren bulanan per jenis pemeriksaan terpilih. */
+    public function trendByJenis(Request $request): JsonResponse
+    {
+        try {
+            $jenisIds = array_values(array_filter((array) $request->query('jenis_ids', []), 'is_string'));
+            $data = $this->dashboard->trendByJenis(DashboardFilter::fromRequest($request), $jenisIds);
+
+            return ApiResponse::success($data);
+        } catch (Throwable $e) {
+            Log::error('Gagal memuat tren per jenis pemeriksaan', ['error' => $e->getMessage()]);
+
+            return ApiResponse::error('Gagal memuat tren per jenis pemeriksaan. Silakan coba lagi.', 500);
+        }
+    }
+
+    /** Endpoint JSON: opsi jenis pemeriksaan untuk checklist tren. */
+    public function jenisPemeriksaan(): JsonResponse
+    {
+        try {
+            $data = $this->dashboard->jenisPemeriksaanOptions();
+
+            return ApiResponse::success($data);
+        } catch (Throwable $e) {
+            Log::error('Gagal memuat opsi jenis pemeriksaan', ['error' => $e->getMessage()]);
+
+            return ApiResponse::error('Gagal memuat opsi jenis pemeriksaan. Silakan coba lagi.', 500);
+        }
+    }
+
+    /** Endpoint JSON: deret tren bulanan dikelompokkan menurut provinsi/regional/tier. */
+    public function trendGrouped(Request $request): JsonResponse
+    {
+        $allowed = ['provinsi', 'regional', 'tier'];
+        $groupBy = in_array($request->query('group_by'), $allowed, true) ? $request->query('group_by') : 'tier';
+
+        try {
+            $data = $this->dashboard->trendGrouped(DashboardFilter::fromRequest($request), $groupBy);
+
+            return ApiResponse::success($data);
+        } catch (Throwable $e) {
+            Log::error('Gagal memuat tren terkelompok', ['error' => $e->getMessage()]);
+
+            return ApiResponse::error('Gagal memuat tren terkelompok. Silakan coba lagi.', 500);
+        }
+    }
+
+    /** Endpoint JSON: deret tren bulanan untuk beberapa Labkesmas terpilih. */
+    public function trendMultiLabkesmas(Request $request): JsonResponse
+    {
+        $labIds = array_values(array_filter((array) $request->query('lab_ids', []), 'is_string'));
+
+        try {
+            $data = $this->dashboard->trendMultiLabkesmas($labIds);
+
+            return ApiResponse::success($data);
+        } catch (Throwable $e) {
+            Log::error('Gagal memuat tren multi-labkesmas', ['error' => $e->getMessage()]);
+
+            return ApiResponse::error('Gagal memuat tren multi-labkesmas. Silakan coba lagi.', 500);
         }
     }
 }

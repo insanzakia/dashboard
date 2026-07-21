@@ -6,11 +6,14 @@ import { WilayahCascadeFilter } from '@/Components/organisms/WilayahCascadeFilte
 import { TierSelector } from '@/Components/molecules/TierSelector';
 import { SummaryCardsGrid } from '@/Components/organisms/SummaryCardsGrid';
 import { TrendChart } from '@/Components/organisms/TrendChart';
+import { JenisTrendSection } from '@/Components/organisms/JenisTrendSection';
+import { WilayahTierTrendSection } from '@/Components/organisms/WilayahTierTrendSection';
 import { DashboardFilterProvider, useDashboardFilter } from '@/context/DashboardFilterContext';
 import { useDashboardSummary } from '@/hooks/useDashboardSummary';
 import { useTrendData } from '@/hooks/useTrendData';
+import type { InventarisLabkesmasOption } from '@/types/inventarisAlat';
 
-function DashboardContent() {
+function DashboardContent({ labkesmasOptions }: { labkesmasOptions: InventarisLabkesmasOption[] }) {
     const { filter, setTier, resetFilter } = useDashboardFilter();
     const summary = useDashboardSummary(filter);
     const trend = useTrendData(filter);
@@ -52,16 +55,24 @@ function DashboardContent() {
                     </CardContent>
                 </Card>
             </section>
+
+            <section>
+                <JenisTrendSection filter={filter} />
+            </section>
+
+            <section>
+                <WilayahTierTrendSection filter={filter} labkesmasOptions={labkesmasOptions} />
+            </section>
         </div>
     );
 }
 
-export default function DashboardIndex() {
+export default function DashboardIndex({ labkesmasOptions }: { labkesmasOptions: InventarisLabkesmasOption[] }) {
     return (
         <PublicLayout>
             <Head title="Dashboard" />
             <DashboardFilterProvider>
-                <DashboardContent />
+                <DashboardContent labkesmasOptions={labkesmasOptions} />
             </DashboardFilterProvider>
         </PublicLayout>
     );

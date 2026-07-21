@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Models\JenisPemeriksaan;
 use App\Models\KabupatenKota;
 use App\Models\Provinsi;
 use App\Models\Regional;
@@ -84,6 +85,202 @@ class DashboardRepository implements DashboardRepositoryInterface
                 'points' => array_values($points),
             ],
         ];
+    }
+
+    public function trendByJenis(DashboardFilter $filter, array $jenisTesIds): array
+    {
+        if (empty($jenisTesIds)) {
+            return [];
+        }
+
+        $rows = $this->scopedQuery($filter)
+            ->join('jenis_pemeriksaan as jp', 'jp.id', '=', 'dp.jenis_tes_id')
+            ->whereIn('dp.jenis_tes_id', $jenisTesIds)
+            ->selectRaw('dp.jenis_tes_id, jp.nama_tes, dp.tahun, dp.bulan, SUM(dp.jumlah) as jumlah')
+            ->groupBy('dp.jenis_tes_id', 'jp.nama_tes', 'dp.tahun', 'dp.bulan')
+            ->orderBy('dp.tahun')
+            ->orderBy('dp.bulan')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return [];
+        }
+
+        // Union periode dari semua jenis terpilih, TREND_PERIODS terakhir — supaya tiap
+        // series punya titik x yang sama persis walau salah satu jenis kosong di suatu bulan.
+        $periods = $rows->map(fn ($row) => sprintf('%04d-%02d', $row->tahun, $row->bulan))
+            ->unique()
+            ->sort()
+            ->values()
+            ->slice(-self::TREND_PERIODS)
+            ->all();
+
+        $byJenis = $rows->groupBy('jenis_tes_id');
+
+        $series = [];
+        foreach ($jenisTesIds as $id) {
+            $rowsForJenis = $byJenis->get($id);
+
+            if (! $rowsForJenis || $rowsForJenis->isEmpty()) {
+                continue;
+            }
+
+            $pointsByPeriode = $rowsForJenis->keyBy(
+                fn ($row) => sprintf('%04d-%02d', $row->tahun, $row->bulan)
+            );
+
+            $series[] = [
+                'id' => $id,
+                'label' => $rowsForJenis->first()->nama_tes,
+                'points' => array_map(
+                    fn ($periode) => [
+                        'periode' => $periode,
+                        'jumlah' => isset($pointsByPeriode[$periode]) ? (int) $pointsByPeriode[$periode]->jumlah : 0,
+                    ],
+                    $periods,
+                ),
+            ];
+        }
+
+        return $series;
+    }
+
+    public function jenisPemeriksaanOptions(): array
+    {
+        return JenisPemeriksaan::query()
+            ->orderBy('nama_tes')
+            ->get(['id', 'nama_tes'])
+            ->map(fn (JenisPemeriksaan $j) => ['id' => $j->id, 'nama_tes' => $j->nama_tes])
+            ->all();
+    }
+
+    public function trendGrouped(DashboardFilter $filter, string $groupBy): array
+    {
+        $rows = DB::table('data_pemeriksaan as dp')
+            ->join('labkesmas as l', 'l.id', '=', 'dp.labkesmas_id')
+            ->join('kabupaten_kota as kk', 'kk.id', '=', 'l.kabupaten_kota_id')
+            ->join('provinsi as p', 'p.id', '=', 'kk.provinsi_id')
+            ->join('regional as r', 'r.id', '=', 'p.regional_id')
+            ->when($filter->kabupatenKotaId, fn ($q) => $q->where('l.kabupaten_kota_id', $filter->kabupatenKotaId))
+            ->when(
+                $filter->provinsiId && ! $filter->kabupatenKotaId,
+                fn ($q) => $q->where('kk.provinsi_id', $filter->provinsiId)
+            )
+            ->when(
+                $filter->regionalId && ! $filter->provinsiId && ! $filter->kabupatenKotaId,
+                fn ($q) => $q->where('p.regional_id', $filter->regionalId)
+            )
+            ->when($filter->tier !== null, fn ($q) => $q->where('l.tier_labkesmas', $filter->tier))
+            ->groupBy('p.id', 'p.nama', 'r.id', 'r.nama', 'l.tier_labkesmas', 'dp.tahun', 'dp.bulan')
+            ->selectRaw(
+                'p.id as prov_id, p.nama as prov_nama, r.id as reg_id, r.nama as reg_nama, '
+                .'l.tier_labkesmas as tier, dp.tahun, dp.bulan, SUM(dp.jumlah) as jumlah'
+            )
+            ->orderBy('dp.tahun')
+            ->orderBy('dp.bulan')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return [];
+        }
+
+        $periods = $rows->map(fn ($row) => sprintf('%04d-%02d', $row->tahun, $row->bulan))
+            ->unique()
+            ->sort()
+            ->values()
+            ->slice(-self::TREND_PERIODS)
+            ->all();
+
+        // Kumpulkan & jumlahkan per (kunci dimensi, periode) — beberapa baris SQL (mis. beda tier/kab)
+        // bisa jatuh ke kunci yang sama (mis. groupBy provinsi), makanya dijumlahkan di sini, bukan di SQL.
+        $byGroup = [];
+        foreach ($rows as $row) {
+            [$key, $label] = match ($groupBy) {
+                'provinsi' => [$row->prov_id, $row->prov_nama],
+                'regional' => [$row->reg_id, $row->reg_nama],
+                default => ['tier-'.$row->tier, 'Tier '.$row->tier],
+            };
+            $periode = sprintf('%04d-%02d', $row->tahun, $row->bulan);
+            $byGroup[$key]['label'] = $label;
+            $byGroup[$key]['points'][$periode] = ($byGroup[$key]['points'][$periode] ?? 0) + (int) $row->jumlah;
+        }
+
+        $series = [];
+        foreach ($byGroup as $key => $group) {
+            $series[] = [
+                'id' => (string) $key,
+                'label' => $group['label'],
+                'points' => array_map(
+                    fn ($periode) => ['periode' => $periode, 'jumlah' => $group['points'][$periode] ?? 0],
+                    $periods,
+                ),
+            ];
+        }
+
+        usort(
+            $series,
+            $groupBy === 'tier'
+                ? fn ($a, $b) => $a['id'] <=> $b['id']
+                : fn ($a, $b) => $a['label'] <=> $b['label'],
+        );
+
+        return $series;
+    }
+
+    public function trendMultiLabkesmas(array $labkesmasIds): array
+    {
+        if (empty($labkesmasIds)) {
+            return [];
+        }
+
+        $rows = DB::table('data_pemeriksaan as dp')
+            ->join('labkesmas as l', 'l.id', '=', 'dp.labkesmas_id')
+            ->whereIn('dp.labkesmas_id', $labkesmasIds)
+            ->selectRaw('dp.labkesmas_id, l.nama_kantor, dp.tahun, dp.bulan, SUM(dp.jumlah) as jumlah')
+            ->groupBy('dp.labkesmas_id', 'l.nama_kantor', 'dp.tahun', 'dp.bulan')
+            ->orderBy('dp.tahun')
+            ->orderBy('dp.bulan')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return [];
+        }
+
+        $periods = $rows->map(fn ($row) => sprintf('%04d-%02d', $row->tahun, $row->bulan))
+            ->unique()
+            ->sort()
+            ->values()
+            ->slice(-self::TREND_PERIODS)
+            ->all();
+
+        $byLab = $rows->groupBy('labkesmas_id');
+
+        $series = [];
+        foreach ($labkesmasIds as $id) {
+            $rowsForLab = $byLab->get($id);
+
+            if (! $rowsForLab || $rowsForLab->isEmpty()) {
+                continue;
+            }
+
+            $pointsByPeriode = $rowsForLab->keyBy(
+                fn ($row) => sprintf('%04d-%02d', $row->tahun, $row->bulan)
+            );
+
+            $series[] = [
+                'id' => $id,
+                'label' => $rowsForLab->first()->nama_kantor,
+                'points' => array_map(
+                    fn ($periode) => [
+                        'periode' => $periode,
+                        'jumlah' => isset($pointsByPeriode[$periode]) ? (int) $pointsByPeriode[$periode]->jumlah : 0,
+                    ],
+                    $periods,
+                ),
+            ];
+        }
+
+        return $series;
     }
 
     /**

@@ -24,10 +24,24 @@ export const MONTH_NAMES = [
 export const DASHBOARD_ENDPOINTS = {
     summary: '/dashboard-data/summary',
     trend: '/dashboard-data/trend',
+    trendByJenis: '/dashboard-data/trend-by-jenis',
+    jenisPemeriksaan: '/dashboard-data/jenis-pemeriksaan',
+    trendGrouped: '/dashboard-data/trend-grouped',
+    trendMultiLabkesmas: '/dashboard-data/trend-multi-labkesmas',
     regional: '/dashboard-data/wilayah/regional',
     provinsi: '/dashboard-data/wilayah/provinsi',
     kabupatenKota: '/dashboard-data/wilayah/kabupaten-kota',
 } as const;
+
+/** Dimensi pengelompokan tren pemeriksaan (Card "Tren per Wilayah/Tier"). */
+export const TREND_GROUP_BY_OPTIONS = [
+    { value: 'provinsi', label: 'Provinsi' },
+    { value: 'regional', label: 'Regional' },
+    { value: 'tier', label: 'Tier' },
+    { value: 'labkesmas', label: 'Labkesmas' },
+] as const;
+
+export type TrendGroupByDimension = (typeof TREND_GROUP_BY_OPTIONS)[number]['value'];
 
 /** Endpoint pemenuhan standar alat (dikonsumsi standarService). */
 export const STANDAR_ENDPOINTS = {

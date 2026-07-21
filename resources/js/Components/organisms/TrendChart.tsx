@@ -11,7 +11,7 @@ export interface TrendChartProps {
     height?: number;
 }
 
-const CHART_COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)'];
+export const CHART_COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)'];
 
 /** Menyusun TrendSeries[] (per-series) menjadi baris data lebar yang dibutuhkan Recharts <LineChart>. */
 function toChartRows(series: TrendSeries[]) {
