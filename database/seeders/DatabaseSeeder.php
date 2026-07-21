@@ -27,5 +27,6 @@ class DatabaseSeeder extends Seeder
         $this->call(LabkesmasSeeder::class);
         $this->call(AlatStandarSeeder::class);
         $this->call(InventarisAlatSeeder::class);
+        $this->call(PemeriksaanLabkesmasSeeder::class);
     }
 }
