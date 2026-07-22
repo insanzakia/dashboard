@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Labkesmas;
 use App\Repositories\Contracts\DashboardRepositoryInterface;
 use App\Repositories\Contracts\InventarisAlatRepositoryInterface;
 use App\Support\ApiResponse;
@@ -118,6 +119,20 @@ class DashboardController extends Controller
             Log::error('Gagal memuat tren multi-labkesmas', ['error' => $e->getMessage()]);
 
             return ApiResponse::error('Gagal memuat tren multi-labkesmas. Silakan coba lagi.', 500);
+        }
+    }
+
+    /** Endpoint JSON: ringkasan pemeriksaan satu Labkesmas (total + per jenis + tren) untuk halaman profil. */
+    public function labPemeriksaan(Labkesmas $labkesmas): JsonResponse
+    {
+        try {
+            $data = $this->dashboard->labPemeriksaan($labkesmas->id);
+
+            return ApiResponse::success($data);
+        } catch (Throwable $e) {
+            Log::error('Gagal memuat pemeriksaan lab', ['error' => $e->getMessage()]);
+
+            return ApiResponse::error('Gagal memuat data pemeriksaan lab. Silakan coba lagi.', 500);
         }
     }
 }

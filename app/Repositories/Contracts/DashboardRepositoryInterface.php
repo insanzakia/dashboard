@@ -59,4 +59,16 @@ interface DashboardRepositoryInterface
      * @return array<int, array{id: string, label: string, points: array<int, array{periode: string, jumlah: int}>}>
      */
     public function trendMultiLabkesmas(array $labkesmasIds): array;
+
+    /**
+     * Ringkasan pemeriksaan satu Labkesmas: total keseluruhan, rincian total per jenis,
+     * dan deret tren bulanan per jenis (untuk ditampilkan di halaman profil lab).
+     *
+     * @return array{
+     *   total: int,
+     *   per_jenis: array<int, array{id: string, nama_tes: string, total: int}>,
+     *   trend: array<int, array{id: string, label: string, points: array<int, array{periode: string, jumlah: int}>}>
+     * }
+     */
+    public function labPemeriksaan(string $labkesmasId): array;
 }

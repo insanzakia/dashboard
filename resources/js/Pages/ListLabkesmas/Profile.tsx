@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import { PublicLayout } from '@/Layouts/PublicLayout';
 import { LabFulfillmentDetail } from '@/Components/organisms/LabFulfillmentDetail';
+import { LabPemeriksaanSection } from '@/Components/organisms/LabPemeriksaanSection';
 import { useLabFulfillment } from '@/hooks/useLabFulfillment';
 import { JENIS_LAB_LABEL } from '@/lib/constants';
 import type { JenisLab } from '@/types/alat';
@@ -40,7 +41,15 @@ export default function ListLabkesmasProfile({ lab }: { lab: ProfileLab }) {
                     </span>
                 </header>
 
-                <LabFulfillmentDetail state={detail} />
+                <section className="flex flex-col gap-4">
+                    <h2 className="text-base font-semibold text-foreground">Data Pemeriksaan</h2>
+                    <LabPemeriksaanSection labId={lab.id} />
+                </section>
+
+                <section className="flex flex-col gap-4">
+                    <h2 className="text-base font-semibold text-foreground">Pemenuhan Standar Alat</h2>
+                    <LabFulfillmentDetail state={detail} />
+                </section>
             </div>
         </PublicLayout>
     );

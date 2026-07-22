@@ -28,6 +28,7 @@ export const DASHBOARD_ENDPOINTS = {
     jenisPemeriksaan: '/dashboard-data/jenis-pemeriksaan',
     trendGrouped: '/dashboard-data/trend-grouped',
     trendMultiLabkesmas: '/dashboard-data/trend-multi-labkesmas',
+    labPemeriksaan: (id: string) => `/dashboard-data/lab-pemeriksaan/${id}`,
     regional: '/dashboard-data/wilayah/regional',
     provinsi: '/dashboard-data/wilayah/provinsi',
     kabupatenKota: '/dashboard-data/wilayah/kabupaten-kota',

@@ -1,7 +1,7 @@
 import { apiClient } from './client';
 import { DASHBOARD_ENDPOINTS, type TrendGroupByDimension } from '@/lib/constants';
 import type { DashboardFilter, SummaryCardData, TrendSeries } from '@/types/dashboard';
-import type { JenisTesOption } from '@/types/dataPemeriksaan';
+import type { JenisTesOption, LabPemeriksaan } from '@/types/dataPemeriksaan';
 
 function toQueryParams(filter: DashboardFilter) {
     return {
@@ -53,6 +53,11 @@ export const dashboardService = {
         const response = await apiClient.get<TrendSeries[]>(DASHBOARD_ENDPOINTS.trendMultiLabkesmas, {
             params: { lab_ids: labIds },
         });
+        return response.data;
+    },
+
+    async getLabPemeriksaan(labId: string): Promise<LabPemeriksaan> {
+        const response = await apiClient.get<LabPemeriksaan>(DASHBOARD_ENDPOINTS.labPemeriksaan(labId));
         return response.data;
     },
 };

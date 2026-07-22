@@ -43,6 +43,7 @@ Route::prefix('dashboard-data')->group(function () {
     Route::get('/jenis-pemeriksaan', [DashboardController::class, 'jenisPemeriksaan'])->name('dashboard-data.jenis-pemeriksaan');
     Route::get('/trend-grouped', [DashboardController::class, 'trendGrouped'])->name('dashboard-data.trend-grouped');
     Route::get('/trend-multi-labkesmas', [DashboardController::class, 'trendMultiLabkesmas'])->name('dashboard-data.trend-multi-labkesmas');
+    Route::get('/lab-pemeriksaan/{labkesmas}', [DashboardController::class, 'labPemeriksaan'])->name('dashboard-data.lab-pemeriksaan');
     Route::get('/wilayah/regional', [WilayahController::class, 'regional'])->name('dashboard-data.wilayah.regional');
     Route::get('/wilayah/provinsi', [WilayahController::class, 'provinsi'])->name('dashboard-data.wilayah.provinsi');
     Route::get('/wilayah/kabupaten-kota', [WilayahController::class, 'kabupatenKota'])->name('dashboard-data.wilayah.kabupaten-kota');

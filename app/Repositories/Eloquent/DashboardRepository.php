@@ -283,6 +283,62 @@ class DashboardRepository implements DashboardRepositoryInterface
         return $series;
     }
 
+    public function labPemeriksaan(string $labkesmasId): array
+    {
+        $rows = DB::table('data_pemeriksaan as dp')
+            ->join('jenis_pemeriksaan as jp', 'jp.id', '=', 'dp.jenis_tes_id')
+            ->where('dp.labkesmas_id', $labkesmasId)
+            ->selectRaw('dp.jenis_tes_id, jp.nama_tes, dp.tahun, dp.bulan, SUM(dp.jumlah) as jumlah')
+            ->groupBy('dp.jenis_tes_id', 'jp.nama_tes', 'dp.tahun', 'dp.bulan')
+            ->orderBy('dp.tahun')
+            ->orderBy('dp.bulan')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return ['total' => 0, 'per_jenis' => [], 'trend' => []];
+        }
+
+        // Periode yang sama untuk semua jenis (TREND_PERIODS terakhir) agar tren bisa ditumpuk.
+        $periods = $rows->map(fn ($row) => sprintf('%04d-%02d', $row->tahun, $row->bulan))
+            ->unique()
+            ->sort()
+            ->values()
+            ->slice(-self::TREND_PERIODS)
+            ->all();
+
+        $byJenis = $rows->groupBy('jenis_tes_id');
+
+        $total = 0;
+        $perJenis = [];
+        $trend = [];
+
+        foreach ($byJenis as $jenisId => $jenisRows) {
+            $namaTes = $jenisRows->first()->nama_tes;
+            $jenisTotal = (int) $jenisRows->sum('jumlah');
+            $total += $jenisTotal;
+
+            $perJenis[] = ['id' => (string) $jenisId, 'nama_tes' => $namaTes, 'total' => $jenisTotal];
+
+            $pointsByPeriode = $jenisRows->keyBy(fn ($row) => sprintf('%04d-%02d', $row->tahun, $row->bulan));
+            $trend[] = [
+                'id' => (string) $jenisId,
+                'label' => $namaTes,
+                'points' => array_map(
+                    fn ($periode) => [
+                        'periode' => $periode,
+                        'jumlah' => isset($pointsByPeriode[$periode]) ? (int) $pointsByPeriode[$periode]->jumlah : 0,
+                    ],
+                    $periods,
+                ),
+            ];
+        }
+
+        // Rincian per jenis diurutkan dari total terbesar.
+        usort($perJenis, fn ($a, $b) => $b['total'] <=> $a['total']);
+
+        return ['total' => $total, 'per_jenis' => $perJenis, 'trend' => $trend];
+    }
+
     /**
      * Query dasar pada data_pemeriksaan yang sudah menerapkan filter wilayah + tier.
      * Memakai query builder (binding otomatis) → aman dari SQL injection.
