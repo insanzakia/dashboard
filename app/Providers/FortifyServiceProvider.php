@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Actions\Fortify\UpdateUserPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -21,6 +22,9 @@ class FortifyServiceProvider extends ServiceProvider
     {
         // Fortify menangani POST /login; GET /login menampilkan komponen Inertia ini.
         Fortify::loginView(fn () => Inertia::render('Auth/Login'));
+
+        // Ganti password sendiri (fitur updatePasswords) — bind aksi kustom kita.
+        Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
 
         // Lockout: maksimal 5 percobaan/menit per kombinasi username + IP.
         RateLimiter::for('login', function (Request $request) {

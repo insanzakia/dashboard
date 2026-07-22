@@ -162,8 +162,10 @@ return [
     |
     */
 
-    // Panel admin single-role: hanya butuh login/logout (selalu terdaftar).
-    // Registrasi, reset password, profil, 2FA, passkey dimatikan (tidak ada kolom/alur pendukung).
-    'features' => [],
+    // Panel admin single-role: login/logout (selalu terdaftar) + ganti password sendiri.
+    // Registrasi, reset password (butuh email), profil, 2FA, passkey tetap dimatikan.
+    'features' => [
+        \Laravel\Fortify\Features::updatePasswords(),
+    ],
 
 ];

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
-import { ChevronDown, LogIn, LogOut } from 'lucide-react';
+import { ChevronDown, KeyRound, LogIn, LogOut, User } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { APP_NAME } from '@/lib/constants';
 import { cn } from '@/lib/utils';
@@ -40,11 +40,17 @@ const ADMIN_GROUPS = [
     },
 ] as const;
 
+const ROLE_LABEL: Record<string, string> = {
+    super_admin: 'Super Admin',
+    admin: 'Admin',
+};
+
 /** Header + navigasi bersama untuk halaman publik & admin (tampilan seragam). */
 export function AppHeader() {
     const { url, props } = usePage<SharedPageProps>();
     const user = props.auth?.user ?? null;
     const [adminOpen, setAdminOpen] = useState(false);
+    const [accountOpen, setAccountOpen] = useState(false);
 
     const isActive = (href: string) => url === href || url.startsWith(`${href}/`);
     const isAdminActive = url.startsWith('/admin');
@@ -153,13 +159,69 @@ export function AppHeader() {
 
                 <div className="flex items-center gap-3 sm:ml-auto">
                     {user ? (
-                        <>
-                            <span className="hidden text-sm text-muted-foreground sm:inline">{user.username}</span>
-                            <Button variant="outline" size="sm" onClick={logout}>
-                                <LogOut />
-                                Keluar
-                            </Button>
-                        </>
+                        <div className="relative">
+                            <button
+                                type="button"
+                                onClick={() => setAccountOpen((open) => !open)}
+                                className={cn(
+                                    'flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors',
+                                    accountOpen ? 'bg-muted' : 'hover:bg-muted',
+                                )}
+                                aria-haspopup="menu"
+                                aria-expanded={accountOpen}
+                            >
+                                <User className="h-4 w-4" />
+                                <span className="max-w-[120px] truncate">{user.username}</span>
+                                <ChevronDown
+                                    className={cn('h-3.5 w-3.5 transition-transform', accountOpen && 'rotate-180')}
+                                />
+                            </button>
+
+                            {accountOpen && (
+                                <>
+                                    <div
+                                        className="fixed inset-0 z-10"
+                                        aria-hidden="true"
+                                        onClick={() => setAccountOpen(false)}
+                                    />
+                                    <div
+                                        role="menu"
+                                        className="absolute right-0 z-20 mt-1 w-60 rounded-lg border bg-card p-1.5 shadow-lg"
+                                    >
+                                        <div className="border-b px-2 pb-2 pt-1">
+                                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                                                Masuk sebagai
+                                            </p>
+                                            <p className="truncate text-sm font-semibold text-foreground">
+                                                {user.username}
+                                            </p>
+                                            <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                                                {ROLE_LABEL[user.role] ?? user.role}
+                                            </span>
+                                        </div>
+                                        <Link
+                                            href="/akun"
+                                            onClick={() => setAccountOpen(false)}
+                                            className="mt-1 flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-foreground hover:bg-muted"
+                                        >
+                                            <KeyRound className="h-4 w-4" />
+                                            Ganti Password
+                                        </Link>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setAccountOpen(false);
+                                                logout();
+                                            }}
+                                            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-destructive hover:bg-destructive/10"
+                                        >
+                                            <LogOut className="h-4 w-4" />
+                                            Keluar
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     ) : (
                         <Button asChild size="sm" variant="outline">
                             <Link href="/login">

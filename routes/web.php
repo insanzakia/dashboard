@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\Wilayah\KabupatenKotaController;
 use App\Http\Controllers\Admin\Wilayah\NegaraController;
 use App\Http\Controllers\Admin\Wilayah\ProvinsiController;
 use App\Http\Controllers\Admin\Wilayah\RegionalController;
+use App\Http\Controllers\AkunController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\StandarLabkesmasController;
@@ -61,6 +62,9 @@ Route::prefix('standar-data')->name('standar-data.')->group(function () {
     Route::get('/grouped', [StandarLabkesmasController::class, 'grouped'])->name('grouped');
     Route::get('/multi', [StandarLabkesmasController::class, 'multi'])->name('multi');
 });
+
+// Akun pengguna (info akun + ganti password sendiri) — butuh login.
+Route::middleware('auth')->get('/akun', [AkunController::class, 'edit'])->name('akun');
 
 /*
 |--------------------------------------------------------------------------
