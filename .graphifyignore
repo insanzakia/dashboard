@@ -1,0 +1,20 @@
+# Fokuskan knowledge graph ke kode sumber proyek saja.
+# vendor/ & public/build SENGAJA di-commit (deploy Hostinger) tapi bukan kode kita —
+# dan sebagian file di vendor bukan UTF-8 sehingga menggagalkan ekstraksi AST.
+vendor/
+public/build/
+public/hot
+node_modules/
+storage/
+bootstrap/cache/
+graphify-out/
+
+# Artefak / lock / binari
+composer.phar
+composer.lock
+package-lock.json
+*.min.js
+*.min.css
+*.map
+database.sqlite
+*.sqlite

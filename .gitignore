@@ -30,3 +30,6 @@ Thumbs.db
 # File deploy berisi rahasia (APP_KEY / password admin) — JANGAN pernah di-commit:
 /database-schema.sql
 /DEPLOY-HOSTINGER-NOCLI.md
+
+# Graphify knowledge graph (artefak lokal, jangan di-commit)
+/graphify-out
