@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\InventarisAlatController;
 use App\Http\Controllers\Admin\JenisPemeriksaanController;
 use App\Http\Controllers\Admin\LabkesmasController;
 use App\Http\Controllers\Admin\StandarAlatController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\Wilayah\KabupatenKotaController;
 use App\Http\Controllers\Admin\Wilayah\NegaraController;
 use App\Http\Controllers\Admin\Wilayah\ProvinsiController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\StandarLabkesmasController;
 use App\Http\Controllers\WilayahController;
+use App\Http\Middleware\EnsureSuperAdmin;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -68,42 +70,66 @@ Route::middleware('auth')->get('/akun', [AkunController::class, 'edit'])->name('
 
 /*
 |--------------------------------------------------------------------------
-| Panel admin (Inertia) — dilindungi middleware `auth` (Fortify di slice berikutnya)
+| Panel admin (Inertia) — butuh login. Sebagian fitur khusus super_admin.
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     // Landing panel admin (tujuan redirect setelah login — lihat config/fortify.php 'home').
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // Master Wilayah — CRUD terpisah per jenjang (index/store/update/destroy).
-    Route::prefix('wilayah')->name('wilayah.')->group(function () {
-        Route::get('/negara', [NegaraController::class, 'index'])->name('negara.index');
-        Route::post('/negara', [NegaraController::class, 'store'])->name('negara.store');
-        Route::put('/negara/{negara}', [NegaraController::class, 'update'])->name('negara.update');
-        Route::delete('/negara/{negara}', [NegaraController::class, 'destroy'])->name('negara.destroy');
+    /*
+     | Fitur khusus SUPER ADMIN: kelola akun + seluruh master data.
+     */
+    Route::middleware(EnsureSuperAdmin::class)->group(function () {
+        // Kelola akun (buat akun admin terbatas + atur cakupan wilayahnya).
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
-        Route::get('/regional', [RegionalController::class, 'index'])->name('regional.index');
-        Route::post('/regional', [RegionalController::class, 'store'])->name('regional.store');
-        Route::put('/regional/{regional}', [RegionalController::class, 'update'])->name('regional.update');
-        Route::delete('/regional/{regional}', [RegionalController::class, 'destroy'])->name('regional.destroy');
+        // Master Wilayah — CRUD terpisah per jenjang (index/store/update/destroy).
+        Route::prefix('wilayah')->name('wilayah.')->group(function () {
+            Route::get('/negara', [NegaraController::class, 'index'])->name('negara.index');
+            Route::post('/negara', [NegaraController::class, 'store'])->name('negara.store');
+            Route::put('/negara/{negara}', [NegaraController::class, 'update'])->name('negara.update');
+            Route::delete('/negara/{negara}', [NegaraController::class, 'destroy'])->name('negara.destroy');
 
-        Route::get('/provinsi', [ProvinsiController::class, 'index'])->name('provinsi.index');
-        Route::post('/provinsi', [ProvinsiController::class, 'store'])->name('provinsi.store');
-        Route::put('/provinsi/{provinsi}', [ProvinsiController::class, 'update'])->name('provinsi.update');
-        Route::delete('/provinsi/{provinsi}', [ProvinsiController::class, 'destroy'])->name('provinsi.destroy');
+            Route::get('/regional', [RegionalController::class, 'index'])->name('regional.index');
+            Route::post('/regional', [RegionalController::class, 'store'])->name('regional.store');
+            Route::put('/regional/{regional}', [RegionalController::class, 'update'])->name('regional.update');
+            Route::delete('/regional/{regional}', [RegionalController::class, 'destroy'])->name('regional.destroy');
 
-        Route::get('/kabupaten-kota', [KabupatenKotaController::class, 'index'])->name('kabupaten-kota.index');
-        Route::post('/kabupaten-kota', [KabupatenKotaController::class, 'store'])->name('kabupaten-kota.store');
-        Route::put('/kabupaten-kota/{kabupatenKota}', [KabupatenKotaController::class, 'update'])->name('kabupaten-kota.update');
-        Route::delete('/kabupaten-kota/{kabupatenKota}', [KabupatenKotaController::class, 'destroy'])->name('kabupaten-kota.destroy');
+            Route::get('/provinsi', [ProvinsiController::class, 'index'])->name('provinsi.index');
+            Route::post('/provinsi', [ProvinsiController::class, 'store'])->name('provinsi.store');
+            Route::put('/provinsi/{provinsi}', [ProvinsiController::class, 'update'])->name('provinsi.update');
+            Route::delete('/provinsi/{provinsi}', [ProvinsiController::class, 'destroy'])->name('provinsi.destroy');
+
+            Route::get('/kabupaten-kota', [KabupatenKotaController::class, 'index'])->name('kabupaten-kota.index');
+            Route::post('/kabupaten-kota', [KabupatenKotaController::class, 'store'])->name('kabupaten-kota.store');
+            Route::put('/kabupaten-kota/{kabupatenKota}', [KabupatenKotaController::class, 'update'])->name('kabupaten-kota.update');
+            Route::delete('/kabupaten-kota/{kabupatenKota}', [KabupatenKotaController::class, 'destroy'])->name('kabupaten-kota.destroy');
+        });
+
+        // Master Jenis Pemeriksaan (tes)
+        Route::get('/jenis-pemeriksaan', [JenisPemeriksaanController::class, 'index'])->name('jenis-pemeriksaan.index');
+        Route::post('/jenis-pemeriksaan', [JenisPemeriksaanController::class, 'store'])->name('jenis-pemeriksaan.store');
+        Route::put('/jenis-pemeriksaan/{jenisPemeriksaan}', [JenisPemeriksaanController::class, 'update'])->name('jenis-pemeriksaan.update');
+        Route::delete('/jenis-pemeriksaan/{jenisPemeriksaan}', [JenisPemeriksaanController::class, 'destroy'])->name('jenis-pemeriksaan.destroy');
+
+        // Master Alat & Standar Peralatan (katalog + standar per tier)
+        Route::get('/alat', [AlatController::class, 'index'])->name('alat.index');
+        Route::post('/alat', [AlatController::class, 'store'])->name('alat.store');
+        Route::put('/alat/{alat}', [AlatController::class, 'update'])->name('alat.update');
+        Route::delete('/alat/{alat}', [AlatController::class, 'destroy'])->name('alat.destroy');
+
+        Route::post('/standar-alat', [StandarAlatController::class, 'store'])->name('standar-alat.store');
+        Route::post('/alat/{alat}/standar', [StandarAlatController::class, 'sync'])->name('standar-alat.sync');
+        Route::delete('/standar-alat/{standarAlat}', [StandarAlatController::class, 'destroy'])->name('standar-alat.destroy');
     });
 
-    // Master Jenis Pemeriksaan (tes)
-    Route::get('/jenis-pemeriksaan', [JenisPemeriksaanController::class, 'index'])->name('jenis-pemeriksaan.index');
-    Route::post('/jenis-pemeriksaan', [JenisPemeriksaanController::class, 'store'])->name('jenis-pemeriksaan.store');
-    Route::put('/jenis-pemeriksaan/{jenisPemeriksaan}', [JenisPemeriksaanController::class, 'update'])->name('jenis-pemeriksaan.update');
-    Route::delete('/jenis-pemeriksaan/{jenisPemeriksaan}', [JenisPemeriksaanController::class, 'destroy'])->name('jenis-pemeriksaan.destroy');
-
+    /*
+     | Input data — super_admin ATAU admin terbatas (dibatasi cakupan di controller).
+     */
     // Pendaftaran Labkesmas
     Route::get('/labkesmas', [LabkesmasController::class, 'index'])->name('labkesmas.index');
     Route::post('/labkesmas', [LabkesmasController::class, 'store'])->name('labkesmas.store');
@@ -114,16 +140,6 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/data-pemeriksaan', [DataPemeriksaanController::class, 'index'])->name('data-pemeriksaan.index');
     Route::post('/data-pemeriksaan', [DataPemeriksaanController::class, 'store'])->name('data-pemeriksaan.store');
     Route::delete('/data-pemeriksaan/{dataPemeriksaan}', [DataPemeriksaanController::class, 'destroy'])->name('data-pemeriksaan.destroy');
-
-    // Master Alat & Standar Peralatan (katalog + standar per tier)
-    Route::get('/alat', [AlatController::class, 'index'])->name('alat.index');
-    Route::post('/alat', [AlatController::class, 'store'])->name('alat.store');
-    Route::put('/alat/{alat}', [AlatController::class, 'update'])->name('alat.update');
-    Route::delete('/alat/{alat}', [AlatController::class, 'destroy'])->name('alat.destroy');
-
-    Route::post('/standar-alat', [StandarAlatController::class, 'store'])->name('standar-alat.store');
-    Route::post('/alat/{alat}/standar', [StandarAlatController::class, 'sync'])->name('standar-alat.sync');
-    Route::delete('/standar-alat/{standarAlat}', [StandarAlatController::class, 'destroy'])->name('standar-alat.destroy');
 
     // Input inventaris alat per Labkesmas (bulk upsert)
     Route::get('/inventaris-alat', [InventarisAlatController::class, 'index'])->name('inventaris-alat.index');

@@ -9,9 +9,10 @@ use Illuminate\Support\Facades\DB;
 
 class DataPemeriksaanRepository implements DataPemeriksaanRepositoryInterface
 {
-    public function labkesmasOptions(): array
+    public function labkesmasOptions(?array $allowedLabkesmasIds = null): array
     {
         return Labkesmas::query()
+            ->when($allowedLabkesmasIds !== null, fn ($q) => $q->whereIn('id', $allowedLabkesmasIds))
             ->orderBy('nama_kantor')
             ->get(['id', 'nama_kantor'])
             ->map(fn (Labkesmas $l) => ['id' => $l->id, 'nama_kantor' => $l->nama_kantor])
@@ -27,7 +28,7 @@ class DataPemeriksaanRepository implements DataPemeriksaanRepositoryInterface
             ->all();
     }
 
-    public function recentEntries(int $limit = 15): array
+    public function recentEntries(int $limit = 15, ?array $allowedLabkesmasIds = null): array
     {
         // JOIN via query builder (parameterized) → aman dari SQL injection.
         // "Terbaru" = paling baru disentuh (updated_at), agar entri yang baru diinput/diperbarui
@@ -35,6 +36,7 @@ class DataPemeriksaanRepository implements DataPemeriksaanRepositoryInterface
         return DB::table('data_pemeriksaan as dp')
             ->join('labkesmas as l', 'l.id', '=', 'dp.labkesmas_id')
             ->join('jenis_pemeriksaan as j', 'j.id', '=', 'dp.jenis_tes_id')
+            ->when($allowedLabkesmasIds !== null, fn ($q) => $q->whereIn('dp.labkesmas_id', $allowedLabkesmasIds))
             ->orderByDesc('dp.updated_at')
             ->orderByDesc('dp.tahun')
             ->orderByDesc('dp.bulan')

@@ -19,7 +19,7 @@ class LabkesmasController extends Controller
     public function index(LabkesmasRepositoryInterface $labkesmas): Response
     {
         return Inertia::render('Admin/Labkesmas/Index', [
-            'items' => $labkesmas->labkesmasForAdmin(),
+            'items' => $labkesmas->labkesmasForAdmin(auth()->user()->allowedLabkesmasIds()),
         ]);
     }
 
@@ -39,6 +39,8 @@ class LabkesmasController extends Controller
 
     public function destroy(Labkesmas $labkesmas, DeleteLabkesmasAction $action): RedirectResponse
     {
+        abort_unless(auth()->user()->canAccessLabkesmas($labkesmas->id), 403);
+
         $action->execute($labkesmas);
 
         return back()->with('success', 'Labkesmas berhasil dihapus.');

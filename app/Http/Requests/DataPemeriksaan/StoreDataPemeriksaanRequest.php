@@ -13,7 +13,8 @@ class StoreDataPemeriksaanRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        // Hanya boleh input untuk labkesmas dalam cakupan akun (super_admin: semua).
+        return $this->user()->canAccessLabkesmas($this->input('labkesmas_id'));
     }
 
     /**

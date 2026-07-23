@@ -4,8 +4,11 @@ namespace App\Repositories\Contracts;
 
 interface InventarisAlatRepositoryInterface
 {
-    /** @return array<int, array{id: string, nama_kantor: string, tier_labkesmas: int, jenis_lab: ?string}> */
-    public function labkesmasOptions(): array;
+    /**
+     * @param  array<int, string>|null  $allowedLabkesmasIds  null = semua (super_admin); array = batasi ke id tsb.
+     * @return array<int, array{id: string, nama_kantor: string, tier_labkesmas: int, jenis_lab: ?string}>
+     */
+    public function labkesmasOptions(?array $allowedLabkesmasIds = null): array;
 
     /**
      * Daftar alat yang DIWAJIBKAN untuk tier lab tsb, beserta jumlah yang sudah dimiliki.

@@ -12,7 +12,7 @@ class StoreInventarisAlatRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->canAccessLabkesmas($this->input('labkesmas_id'));
     }
 
     /**

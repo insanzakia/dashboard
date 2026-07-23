@@ -15,13 +15,19 @@ class InventarisAlatController extends Controller
 {
     public function index(Request $request, InventarisAlatRepositoryInterface $repo): Response
     {
+        $allowed = auth()->user()->allowedLabkesmasIds();
         $selectedId = $request->query('labkesmas_id');
 
+        // Abaikan lab terpilih yang di luar cakupan (jangan bocorkan datanya).
+        $allowedSelected = $selectedId !== null && auth()->user()->canAccessLabkesmas($selectedId)
+            ? $selectedId
+            : null;
+
         return Inertia::render('Admin/InventarisAlat/Index', [
-            'labkesmasOptions' => $repo->labkesmasOptions(),
-            'selectedLabkesmasId' => $selectedId,
-            // Daftar item hanya diambil bila sebuah lab dipilih (via query string).
-            'items' => $selectedId ? $repo->requiredItemsForLab($selectedId) : [],
+            'labkesmasOptions' => $repo->labkesmasOptions($allowed),
+            'selectedLabkesmasId' => $allowedSelected,
+            // Daftar item hanya diambil bila sebuah lab (dalam cakupan) dipilih.
+            'items' => $allowedSelected ? $repo->requiredItemsForLab($allowedSelected) : [],
         ]);
     }
 

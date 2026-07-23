@@ -14,7 +14,8 @@ class StoreLabkesmasRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        // Hanya boleh mendaftarkan labkesmas di kab/kota dalam cakupan akun (super_admin: semua).
+        return $this->user()->canCreateLabkesmasInKab($this->input('kabupaten_kota_id'));
     }
 
     /**

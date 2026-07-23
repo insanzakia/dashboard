@@ -8,9 +8,10 @@ use Illuminate\Support\Facades\DB;
 
 class InventarisAlatRepository implements InventarisAlatRepositoryInterface
 {
-    public function labkesmasOptions(): array
+    public function labkesmasOptions(?array $allowedLabkesmasIds = null): array
     {
         return Labkesmas::query()
+            ->when($allowedLabkesmasIds !== null, fn ($q) => $q->whereIn('id', $allowedLabkesmasIds))
             ->orderBy('nama_kantor')
             ->get(['id', 'nama_kantor', 'tier_labkesmas', 'jenis_lab'])
             ->map(fn (Labkesmas $l) => [

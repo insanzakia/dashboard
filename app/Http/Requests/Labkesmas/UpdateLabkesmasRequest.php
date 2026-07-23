@@ -9,7 +9,13 @@ class UpdateLabkesmasRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        $labkesmas = $this->route('labkesmas');
+
+        // Harus punya akses ke lab yang diedit DAN kab/kota tujuan ada dalam cakupan
+        // (mencegah memindahkan lab keluar dari wilayahnya). super_admin lolos semua.
+        return $user->canAccessLabkesmas($labkesmas?->id)
+            && $user->canCreateLabkesmasInKab($this->input('kabupaten_kota_id'));
     }
 
     /**

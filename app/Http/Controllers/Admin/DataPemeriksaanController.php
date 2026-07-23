@@ -16,10 +16,13 @@ class DataPemeriksaanController extends Controller
 {
     public function index(DataPemeriksaanRepositoryInterface $repo): Response
     {
+        // Batasi opsi & daftar ke cakupan akun (null = super_admin lihat semua).
+        $allowed = auth()->user()->allowedLabkesmasIds();
+
         return Inertia::render('Admin/DataPemeriksaan/Index', [
-            'labkesmasOptions' => $repo->labkesmasOptions(),
+            'labkesmasOptions' => $repo->labkesmasOptions($allowed),
             'jenisTesOptions' => $repo->jenisTesOptions(),
-            'recentEntries' => $repo->recentEntries(),
+            'recentEntries' => $repo->recentEntries(15, $allowed),
         ]);
     }
 
@@ -32,6 +35,8 @@ class DataPemeriksaanController extends Controller
 
     public function destroy(DataPemeriksaan $dataPemeriksaan, DeleteDataPemeriksaanAction $action): RedirectResponse
     {
+        abort_unless(auth()->user()->canAccessLabkesmas($dataPemeriksaan->labkesmas_id), 403);
+
         $action->execute($dataPemeriksaan);
 
         return back()->with('success', 'Data pemeriksaan berhasil dihapus.');

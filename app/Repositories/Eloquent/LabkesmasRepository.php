@@ -7,11 +7,12 @@ use App\Repositories\Contracts\LabkesmasRepositoryInterface;
 
 class LabkesmasRepository implements LabkesmasRepositoryInterface
 {
-    public function labkesmasForAdmin(): array
+    public function labkesmasForAdmin(?array $allowedLabkesmasIds = null): array
     {
         // Eager load rantai lokasi agar tidak N+1 (kab/kota → provinsi → regional).
         return Labkesmas::query()
             ->with('kabupatenKota.provinsi.regional')
+            ->when($allowedLabkesmasIds !== null, fn ($q) => $q->whereIn('id', $allowedLabkesmasIds))
             ->orderBy('nama_kantor')
             ->get()
             ->map(function (Labkesmas $lab) {

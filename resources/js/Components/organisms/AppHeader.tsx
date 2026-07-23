@@ -12,8 +12,22 @@ const NAV_ITEMS = [
     { href: '/pemeriksaan', label: 'Pemeriksaan' },
 ] as const;
 
-/** Isi menu Admin — pengelolaan data (hanya tampil saat login). */
-const ADMIN_GROUPS = [
+/** Menu input data — untuk semua admin (dibatasi cakupan di server). */
+const ADMIN_INPUT_GROUP = {
+    label: 'Input Data',
+    items: [
+        { href: '/admin/labkesmas', label: 'Labkesmas' },
+        { href: '/admin/data-pemeriksaan', label: 'Data Pemeriksaan' },
+        { href: '/admin/inventaris-alat', label: 'Input Alat' },
+    ],
+} as const;
+
+/** Menu khusus SUPER ADMIN — kelola akun & seluruh master data. */
+const SUPERADMIN_GROUPS = [
+    {
+        label: 'Akun',
+        items: [{ href: '/admin/users', label: 'Kelola Akun' }],
+    },
     {
         label: 'Wilayah',
         items: [
@@ -24,18 +38,10 @@ const ADMIN_GROUPS = [
         ],
     },
     {
-        label: 'Data',
+        label: 'Master Data',
         items: [
-            { href: '/admin/labkesmas', label: 'Labkesmas' },
             { href: '/admin/jenis-pemeriksaan', label: 'Jenis Pemeriksaan' },
-            { href: '/admin/data-pemeriksaan', label: 'Data Pemeriksaan' },
-        ],
-    },
-    {
-        label: 'Peralatan',
-        items: [
             { href: '/admin/alat', label: 'Alat & Standar' },
-            { href: '/admin/inventaris-alat', label: 'Input Alat' },
         ],
     },
 ] as const;
@@ -49,12 +55,16 @@ const ROLE_LABEL: Record<string, string> = {
 export function AppHeader() {
     const { url, props } = usePage<SharedPageProps>();
     const user = props.auth?.user ?? null;
+    const isSuperAdmin = user?.role === 'super_admin';
     const [adminOpen, setAdminOpen] = useState(false);
     const [accountOpen, setAccountOpen] = useState(false);
 
     const isActive = (href: string) => url === href || url.startsWith(`${href}/`);
     const isAdminActive = url.startsWith('/admin');
     const logout = () => router.post('/logout');
+
+    // Admin biasa hanya melihat menu input data; super admin melihat semuanya.
+    const adminGroups = isSuperAdmin ? [ADMIN_INPUT_GROUP, ...SUPERADMIN_GROUPS] : [ADMIN_INPUT_GROUP];
 
     return (
         <header className="relative z-20 border-b bg-card">
@@ -128,7 +138,7 @@ export function AppHeader() {
                                         >
                                             Dashboard Admin
                                         </Link>
-                                        {ADMIN_GROUPS.map((group) => (
+                                        {adminGroups.map((group) => (
                                             <div key={group.label} className="mt-1">
                                                 <p className="px-2 pb-1 pt-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                                                     {group.label}
